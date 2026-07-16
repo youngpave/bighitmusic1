@@ -2,48 +2,60 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maç TV</title>
-
 <style>
-    *{
-        margin:0;
-        padding:0;
-        box-sizing:border-box;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: sans-serif; }
 
-    html,body{
-        width:100%;
-        height:100%;
-        background:#000;
-        overflow:hidden;
-    }
+    .container { display: flex; width: 100vw; height: 100vh; }
+    .player { flex: 1; height: 100%; background: #000; }
+    
+    iframe { width: 100%; height: 100%; border: 0; }
 
-    .player{
-        position:fixed;
-        inset:0;
-        width:100%;
-        height:100%;
+    .sidebar { width: 80px; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 15px; }
+    .channel-btn { 
+        width: 60px; height: 60px; background: #333; color: #fff; 
+        border: none; cursor: pointer; border-radius: 8px; font-weight: bold;
     }
-
-    iframe{
-        width:100%;
-        height:100%;
-        border:0;
-    }
+    .channel-btn:hover { background: #e50914; }
 </style>
 </head>
 <body>
 
-<div class="player">
-    <iframe
-        src="https://victorystreams.shop/streams/stream-62.php"
-        referrerpolicy="no-referrer"
-        allowfullscreen
-        allow="autoplay; encrypted-media"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
-    </iframe>
+<div class="container">
+    <div class="player" id="playerContainer">
+        <iframe id="videoPlayer" 
+            src="https://victorystreams.shop/streams/stream-62.php" 
+            referrerpolicy="no-referrer" 
+            allowfullscreen 
+            allow="autoplay; encrypted-media"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+        </iframe>
+    </div>
+
+    <div class="sidebar">
+        <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-62.php')">K 1</button>
+        <button class="channel-btn" onclick="changeChannel('LİNK_2')">K 2</button>
+        <button class="channel-btn" onclick="changeChannel('LİNK_3')">K 3</button>
+    </div>
 </div>
+
+<script>
+    function changeChannel(url) {
+        const playerContainer = document.getElementById('playerContainer');
+        // Mevcut iframe'i silip yenisini oluşturarak tüm güvenlik parametrelerini sıfırlıyoruz
+        playerContainer.innerHTML = `
+            <iframe id="videoPlayer" 
+                src="${url}" 
+                referrerpolicy="no-referrer" 
+                allowfullscreen 
+                allow="autoplay; encrypted-media"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+            </iframe>
+        `;
+    }
+</script>
 
 </body>
 </html>
