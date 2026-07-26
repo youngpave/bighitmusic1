@@ -62,7 +62,7 @@
         <div class="section-title">Kanallar</div>
         
         <div class="channel-grid">
-            <!-- BEIN SPORTS 1 (B1) -->
+            <!-- BEIN SPORTS 1 (B1) - Sandbox'lı -->
             <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-62.php', true)">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/BeIN_Sports_1_%282020%29.svg" alt="beIN 1" class="channel-logo logo-bein">
                 <div class="channel-info">
@@ -71,7 +71,7 @@
                 </div>
             </button>
 
-            <!-- BEIN SPORTS 2 (B2) -->
+            <!-- BEIN SPORTS 2 (B2) - Sandbox'lı -->
             <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-63.php', true)">
                  <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/BeIN_Sports_2_%282020%29.svg" alt="beIN 2" class="channel-logo logo-bein">
                 <div class="channel-info">
@@ -80,16 +80,16 @@
                 </div>
             </button>
 
-            <!-- BEIN SPORTS 3 (B3) - Yeni Link & Sandbox Yok -->
-            <button class="channel-btn" onclick="openExternalChannel('https://dlhd.st/cast/stream-64.php')">
+            <!-- BEIN SPORTS 3 (B3) - Sandbox'sız, Tamamen Bağımsız -->
+            <button class="channel-btn" onclick="changeChannel('https://dlhd.st/cast/stream-64.php', false)">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/BeIN_Sports_3_%282020%29.svg" alt="beIN 3" class="channel-logo logo-bein">
                 <div class="channel-info">
                     <span class="channel-name">beIN SPORTS 3</span>
-                    <span class="channel-meta">Canlı (Yeni Sekme)</span>
+                    <span class="channel-meta">Canlı (Bağımsız)</span>
                 </div>
             </button>
             
-            <!-- BEIN SPORTS 4 (B4) -->
+            <!-- BEIN SPORTS 4 (B4) - Sandbox'lı -->
             <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-67.php', true)">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/BeIN_Sports_4_%282020%29.svg" alt="beIN 4" class="channel-logo logo-bein">
                 <div class="channel-info">
@@ -98,7 +98,7 @@
                 </div>
             </button>
 
-             <!-- BEIN SPORTS Haber (B5) -->
+             <!-- BEIN SPORTS Haber (B5) - Sandbox'lı -->
             <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-66.php', true)">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/BeIN_Sports_Haber_%282020%29.svg" alt="beIN Haber" class="channel-logo logo-bein">
                 <div class="channel-info">
@@ -114,6 +114,7 @@
 <script>
     function changeChannel(url, useSandbox) {
         const playerContainer = document.getElementById('playerContainer');
+        // useSandbox true ise sandbox özniteliği eklenir, false ise tamamen boş bırakılır (sandbox'sız).
         const sandboxAttr = useSandbox ? 'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"' : '';
         
         playerContainer.innerHTML = `
@@ -126,10 +127,6 @@
             </iframe>
         `;
         document.querySelector('.container').scrollTop = 0;
-    }
-
-    function openExternalChannel(url) {
-        window.open(url, '_blank');
     }
 </script>
 
