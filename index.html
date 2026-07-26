@@ -2,29 +2,52 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maç TV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Maç TV Pro</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: sans-serif; }
+    html, body { width:100%; height:100%; background:#000; overflow-x:hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #fff; }
 
-    .container { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
-    .player { flex: 1; width: 100%; background: #000; }
+    .container { display: flex; flex-direction: column; width: 100vw; min-height: 100vh; }
     
+    /* Üst Video Oynatıcı Alanı */
+    .player-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
     iframe { width: 100%; height: 100%; border: 0; }
 
-    .sidebar { width: 100%; height: 80px; background: #1a1a1a; display: flex; flex-direction: row; align-items: center; justify-content: center; padding: 0 20px; gap: 15px; }
+    /* Alt Kanal Listesi Alanı */
+    .channels-section { flex: 1; background: #121212; padding: 15px; }
+    
+    .section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; padding-left: 5px; }
+
+    /* Kanal Butonları Grid Yapısı */
+    .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    
     .channel-btn { 
-        width: 60px; height: 50px; background: #333; color: #fff; 
-        border: none; cursor: pointer; border-radius: 8px; font-weight: bold;
+        background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px;
+        display: flex; align-items: center; gap: 10px; cursor: pointer;
+        transition: all 0.2s ease;
     }
-    .channel-btn:hover { background: #e50914; }
+    .channel-btn:hover { background: #2a2a2a; border-color: #444; transform: translateY(-2px); }
+    .channel-btn:active { background: #333; transform: translateY(0); }
+
+    /* Kanal Logosu */
+    .channel-logo { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+
+    /* Kanal Yazısı */
+    .channel-info { display: flex; flex-direction: column; }
+    .channel-name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+    .channel-meta { font-size: 10px; color: #888; margin-top: 2px; }
+
+    /* beIN SPORTS Logoları İçin Renkler (Örnek) */
+    .logo-bein { filter: brightness(0) invert(1); } /* Logoyu beyaz yapar */
+
 </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="player" id="playerContainer">
+    <!-- Üst Video Oynatıcı -->
+    <div class="player-wrapper" id="playerContainer">
         <iframe id="videoPlayer" 
             src="https://victorystreams.shop/streams/stream-62.php" 
             referrerpolicy="no-referrer" 
@@ -34,12 +57,57 @@
         </iframe>
     </div>
 
-    <div class="sidebar">
-        <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-62.php', true)">B1</button>
-        <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-63.php', true)">B2</button>
-        <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-64.php', false)">B3</button>
-        <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-65.php', true)">B4</button>
-        <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-66.php', true)">B5</button>
+    <!-- Alt Kanal Listesi -->
+    <div class="channels-section">
+        <div class="section-title">Kanallar</div>
+        
+        <div class="channel-grid">
+            <!-- BEIN SPORTS 1 (B1) -->
+            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-62.php', true)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/BeIN_Sports_1_%282020%29.svg" alt="beIN 1" class="channel-logo logo-bein">
+                <div class="channel-info">
+                    <span class="channel-name">beIN SPORTS 1</span>
+                    <span class="channel-meta">7/24 Yayın</span>
+                </div>
+            </button>
+
+            <!-- BEIN SPORTS 2 (B2) -->
+            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-63.php', true)">
+                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/BeIN_Sports_2_%282020%29.svg" alt="beIN 2" class="channel-logo logo-bein">
+                <div class="channel-info">
+                    <span class="channel-name">beIN SPORTS 2</span>
+                    <span class="channel-meta">7/24 Yayın</span>
+                </div>
+            </button>
+
+            <!-- BEIN SPORTS 3 (B3) - NO SANDBOX -->
+            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-64.php', false)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/BeIN_Sports_3_%282020%29.svg" alt="beIN 3" class="channel-logo logo-bein">
+                <div class="channel-info">
+                    <span class="channel-name">beIN SPORTS 3</span>
+                    <span class="channel-meta">Canlı</span>
+                </div>
+            </button>
+            
+            <!-- BEIN SPORTS 4 (B4) -->
+            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-65.php', true)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/BeIN_Sports_4_%282020%29.svg" alt="beIN 4" class="channel-logo logo-bein">
+                <div class="channel-info">
+                    <span class="channel-name">beIN SPORTS 4</span>
+                    <span class="channel-meta">Canlı</span>
+                </div>
+            </button>
+
+             <!-- BEIN SPORTS Haber (B5) -->
+            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-66.php', true)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/BeIN_Sports_Haber_%282020%29.svg" alt="beIN Haber" class="channel-logo logo-bein">
+                <div class="channel-info">
+                    <span class="channel-name">beIN Haber</span>
+                    <span class="channel-meta">Son Dakika</span>
+                </div>
+            </button>
+
+        </div>
     </div>
 </div>
 
@@ -57,6 +125,9 @@
                 ${sandboxAttr}>
             </iframe>
         `;
+        
+        // Mobilde kanal seçildiğinde videoya odaklanmak için kaydırabiliriz
+        document.querySelector('.container').scrollTop = 0;
     }
 </script>
 
