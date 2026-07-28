@@ -29,34 +29,27 @@
             src="https://victorystreams.shop/streams/stream-62.php" 
             referrerpolicy="no-referrer" 
             allowfullscreen 
-            allow="autoplay; encrypted-media"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+            allow="autoplay; encrypted-media">
         </iframe>
     </div>
 
     <div class="sidebar">
         <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-62.php')">B1</button>
         <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-63.php')">B2</button>
-        <button class="channel-btn" onclick="changeChannel('https://dlhd.st/cast/stream-64.php')">B3</button>
-
-<button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-67.php')">B4</button>
-
-<button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-64.php')">B5</button>
-
+  
+>
     </div>
 </div>
 
 <script>
     function changeChannel(url) {
         const playerContainer = document.getElementById('playerContainer');
-        // Mevcut iframe'i silip yenisini oluşturarak tüm güvenlik parametrelerini sıfırlıyoruz
         playerContainer.innerHTML = `
             <iframe id="videoPlayer" 
                 src="${url}" 
                 referrerpolicy="no-referrer" 
                 allowfullscreen 
-                allow="autoplay; encrypted-media"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+                allow="autoplay; encrypted-media">
             </iframe>
         `;
     }
@@ -64,5 +57,3 @@
 
 </body>
 </html>
-
-
