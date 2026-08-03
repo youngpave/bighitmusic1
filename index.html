@@ -40,14 +40,16 @@
     /* Sağ Video Oynatıcı Alanı - Ekranın %80'i */
     .player-wrapper { width: 80%; height: 100%; background: #000; position: relative; }
     
-    /* Tam Ekran Modu Sınıfı */
-    .player-wrapper.fullscreen-mode {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        z-index: 999999;
+    /* Gerçek Tam Ekran moduna girdiğinde arkaplanı siyah tut */
+    .player-wrapper:fullscreen {
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+    }
+    .player-wrapper:-webkit-full-screen {
+        width: 100vw;
+        height: 100vh;
+        background: #000;
     }
 
     /* Özel Tam Ekran Butonu */
@@ -55,19 +57,19 @@
         position: absolute;
         bottom: 15px;
         right: 15px;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0.7);
         color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         padding: 6px 12px;
         border-radius: 4px;
         cursor: pointer;
         font-size: 12px;
-        z-index: 1000000;
+        z-index: 10;
         transition: background 0.2s;
     }
-    .fs-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    .fs-btn:hover { background: rgba(255, 255, 255, 0.3); }
 
-    iframe { width: 100%; height: 100%; border: 0; }
+    iframe { width: 100%; height: 100%; border: 0; display: block; }
 </style>
 </head>
 <body>
@@ -127,9 +129,9 @@
 
     <!-- Sağ Video Oynatıcı (%80) -->
     <div class="player-wrapper" id="playerContainer">
-        <button class="fs-btn" onclick="toggleFullscreen()">Tam Ekran</button>
+        <button class="fs-btn" id="fsButton" onclick="toggleFullscreen()">Tam Ekran</button>
         <iframe id="videoPlayer" 
-            src="https://dlhd.st/cast/stream-64.php" 
+            src="https://hesgoaler.com/stream.php?ch=beINSPORTS1TR" 
             width="100%" 
             height="100%" 
             style="border:0;" 
@@ -143,38 +145,40 @@
 
 <script>
     function changeChannel(url) {
-        const playerContainer = document.getElementById('playerContainer');
-        const isFs = playerContainer.classList.contains('fullscreen-mode');
-        
-        playerContainer.innerHTML = `
-            <button class="fs-btn" onclick="toggleFullscreen()">${isFs ? 'Küçült' : 'Tam Ekran'}</button>
-            <iframe id="videoPlayer" 
-                src="${url}" 
-                width="100%" 
-                height="100%" 
-                style="border:0;" 
-                allowfullscreen="true" 
-                webkitallowfullscreen="true" 
-                mozallowfullscreen="true"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture">
-            </iframe>
-        `;
-        if (isFs) {
-            playerContainer.classList.add('fullscreen-mode');
-        }
+        const iframe = document.getElementById('videoPlayer');
+        iframe.src = url;
     }
 
     function toggleFullscreen() {
         const container = document.getElementById('playerContainer');
-        const btn = container.querySelector('.fs-btn');
-        container.classList.toggle('fullscreen-mode');
-        
-        if (container.classList.contains('fullscreen-mode')) {
+        const btn = document.getElementById('fsButton');
+
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            // Tam ekrana geç
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            }
             btn.innerText = 'Küçült';
         } else {
+            // Tam ekrandan çık
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
             btn.innerText = 'Tam Ekran';
         }
     }
+
+    // Kullanıcı klavyeden ESC ile çıkarsa buton yazısını düzelt
+    document.addEventListener('fullscreenchange', () => {
+        const btn = document.getElementById('fsButton');
+        if (!document.fullscreenElement) {
+            btn.innerText = 'Tam Ekran';
+        }
+    });
 </script>
 
 </body>
