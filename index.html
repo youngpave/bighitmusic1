@@ -1,185 +1,59 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Maç TV Pro</title>
-<style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #fff; }
-
-    .container { display: flex; width: 100vw; height: 100vh; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clappr M3U8 Player Örneği</title>
     
-    /* Sol Kanal Listesi Alanı - Ekranın %20'si */
-    .channels-section { width: 20%; height: 100%; background: #121212; padding: 10px; display: flex; flex-direction: column; border-right: 1px solid #222; overflow-y: auto; flex-shrink: 0; }
+    <!-- Clappr Ana Kütüphanesi -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
     
-    .section-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; padding-left: 2px; }
+    <!-- Kalite Seçici (Level Selector) Eklentisi -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr-level-selector-plugin@latest/dist/clappr-level-selector.min.js"></script>
 
-    /* Kanal Butonları Dikey Dizin */
-    .channel-grid { display: flex; flex-direction: column; gap: 8px; }
-    
-    .channel-btn { 
-        background: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 8px;
-        display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%; text-align: left;
-        transition: all 0.2s ease;
-    }
-    .channel-btn:hover { background: #2a2a2a; border-color: #444; }
-    .channel-btn:active { background: #333; }
-
-    /* Kanal Logosu */
-    .channel-logo { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
-
-    /* Kanal Yazısı */
-    .channel-info { display: flex; flex-direction: column; }
-    .channel-name { font-size: 13px; font-weight: 600; line-height: 1.2; color: #fff; }
-    .channel-meta { font-size: 9px; color: #888; margin-top: 1px; }
-
-    /* beIN SPORTS Logoları İçin Renkler */
-    .logo-bein { filter: brightness(0) invert(1); }
-
-    /* Sağ Video Oynatıcı Alanı - Ekranın %80'i */
-    .player-wrapper { width: 80%; height: 100%; background: #000; position: relative; }
-    
-    /* Gerçek Tam Ekran moduna girdiğinde arkaplanı siyah tut */
-    .player-wrapper:fullscreen {
-        width: 100vw;
-        height: 100vh;
-        background: #000;
-    }
-    .player-wrapper:-webkit-full-screen {
-        width: 100vw;
-        height: 100vh;
-        background: #000;
-    }
-
-    /* Özel Tam Ekran Butonu */
-    .fs-btn {
-        position: absolute;
-        bottom: 15px;
-        right: 15px;
-        background: rgba(0, 0, 0, 0.7);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        z-index: 10;
-        transition: background 0.2s;
-    }
-    .fs-btn:hover { background: rgba(255, 255, 255, 0.3); }
-
-    iframe { width: 100%; height: 100%; border: 0; display: block; }
-</style>
+    <style>
+        body {
+            background-color: #141414;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .player-container {
+            width: 80%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        #player {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Sol Kanal Listesi (%20) -->
-    <div class="channels-section">
-        <div class="section-title">Kanallar</div>
-        
-        <div class="channel-grid">
-            <!-- B1 -->
-            <button class="channel-btn" onclick="changeChannel('https://hesgoaler.com/stream.php?ch=beINSPORTS1TR')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/BeIN_Sports_1_%282020%29.svg" alt="B1" class="channel-logo logo-bein">
-                <div class="channel-info">
-                    <span class="channel-name">B1</span>
-                    <span class="channel-meta">Canlı</span>
-                </div>
-            </button>
-
-            <!-- B2 -->
-            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-63.php')">
-                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/BeIN_Sports_2_%282020%29.svg" alt="B2" class="channel-logo logo-bein">
-                <div class="channel-info">
-                    <span class="channel-name">B2</span>
-                    <span class="channel-meta">Canlı</span>
-                </div>
-            </button>
-
-            <!-- B3 -->
-            <button class="channel-btn" onclick="changeChannel('https://dlhd.st/cast/stream-64.php')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/BeIN_Sports_3_%282020%29.svg" alt="B3" class="channel-logo logo-bein">
-                <div class="channel-info">
-                    <span class="channel-name">B3</span>
-                    <span class="channel-meta">Canlı</span>
-                </div>
-            </button>
-            
-            <!-- B4 -->
-            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-67.php')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/BeIN_Sports_4_%282020%29.svg" alt="B4" class="channel-logo logo-bein">
-                <div class="channel-info">
-                    <span class="channel-name">B4</span>
-                    <span class="channel-meta">Canlı</span>
-                </div>
-            </button>
-
-            <!-- B5 -->
-            <button class="channel-btn" onclick="changeChannel('https://victorystreams.shop/streams/stream-66.php')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/BeIN_Sports_Haber_%282020%29.svg" alt="B5" class="channel-logo logo-bein">
-                <div class="channel-info">
-                    <span class="channel-name">B5</span>
-                    <span class="channel-meta">Haber</span>
-                </div>
-            </button>
-        </div>
+    <h2>Clappr HLS / M3U8 Oynatıcı</h2>
+    
+    <div class="player-container">
+        <div id="player"></div>
     </div>
 
-    <!-- Sağ Video Oynatıcı (%80) -->
-    <div class="player-wrapper" id="playerContainer">
-        <button class="fs-btn" id="fsButton" onclick="toggleFullscreen()">Tam Ekran</button>
-        <iframe id="videoPlayer" 
-            src="https://hesgoaler.com/stream.php?ch=beINSPORTS1TR" 
-            width="100%" 
-            height="100%" 
-            style="border:0;" 
-            allowfullscreen="true" 
-            webkitallowfullscreen="true" 
-            mozallowfullscreen="true"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture">
-        </iframe>
-    </div>
-</div>
-
-<script>
-    function changeChannel(url) {
-        const iframe = document.getElementById('videoPlayer');
-        iframe.src = url;
-    }
-
-    function toggleFullscreen() {
-        const container = document.getElementById('playerContainer');
-        const btn = document.getElementById('fsButton');
-
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            // Tam ekrana geç
-            if (container.requestFullscreen) {
-                container.requestFullscreen();
-            } else if (container.webkitRequestFullscreen) {
-                container.webkitRequestFullscreen();
-            }
-            btn.innerText = 'Küçült';
-        } else {
-            // Tam ekrandan çık
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-            btn.innerText = 'Tam Ekran';
-        }
-    }
-
-    // Kullanıcı klavyeden ESC ile çıkarsa buton yazısını düzelt
-    document.addEventListener('fullscreenchange', () => {
-        const btn = document.getElementById('fsButton');
-        if (!document.fullscreenElement) {
-            btn.innerText = 'Tam Ekran';
-        }
-    });
-</script>
+    <script>
+        var player = new Clappr.Player({
+            source: "https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/atv/atv_720p.m3u8", // M3u8 adresini buraya yapıştırın
+            parentId: "#player",
+            plugins: [LevelSelector],
+            width: '100%',
+            height: '100%',
+            autoPlay: false,
+            mute: false
+        });
+    </script>
 
 </body>
 </html>
