@@ -1,1 +1,85 @@
-<iframe src="https://a15.kora-plus.li/frame.php?ch=golazo&p=12&token=72fb1f46-1a5e-4df4-9891-7206d9d30e1c&kt=1786556030" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: 0;" allowfullscreen="true"></iframe>
+<?php
+// 1. Adım: Ana kaynaktan (veya hedef player sayfasından) veriyi çekme simülasyonu/bağlantısı
+$hedefKaynak = "https://dlhd.st/watch/stream-62.php"; // Buraya hedef çakma sitenin veya kaynağın adresini yazıyoruz
+
+// cURL kullanarak ana kaynaktaki içeriği ve player yapısını kendi sunucumuza çekiyoruz
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $hedefKaynak);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+// Ana sitenin bot korumasına takılmamak için tarayıcı gibi davranmasını sağlıyoruz
+curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+$sayfaIcerigi = curl_exec($ch);
+curl_close($ch);
+?>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Özel Yayın Portalı - MaçTV</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0d0d0d;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            padding: 15px 25px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+        .wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 60px);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .player-container {
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 1px solid #222;
+        }
+        /* Çekilen içeriğin player alanını tam oturtmak için */
+        .player-container iframe, .player-container div {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        MaçTV - Canlı Yayın Odası
+    </div>
+
+    <div class="wrapper">
+        <div class="player-container">
+            <?php 
+            // Eğer ana kaynaktan içerik başarılı bir şekilde çekildiyse ekrana basıyoruz
+            if ($sayfaIcerigi) {
+                // Burada ana sitenin HTML yapısı çekilir. İsteğe göre içerideki player'ı 
+                // yakalayıp kendi HTML5 player koduna (Video.js vb.) da bağlayabilirsin.
+                echo $sayfaIcerigi; 
+            } else {
+                echo "<p style='text-align:center; padding-top:20%; color:#ff4d4d;'>Yayın kaynağı şu an ulaşılamaz veya ana site kapalı!</p>";
+            }
+            ?>
+        </div>
+    </div>
+
+</body>
+</html>
