@@ -1,14 +1,12 @@
 <?php
-// 1. Adım: Ana kaynaktan (veya hedef player sayfasından) veriyi çekme simülasyonu/bağlantısı
-$hedefKaynak = "https://dlhd.st/watch/stream-62.php"; // Buraya hedef çakma sitenin veya kaynağın adresini yazıyoruz
+// Hedef yayın bağlantısı
+$hedefKaynak = "https://dlhd.st/watch/stream-62.php"; 
 
-// cURL kullanarak ana kaynaktaki içeriği ve player yapısını kendi sunucumuza çekiyoruz
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $hedefKaynak);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-// Ana sitenin bot korumasına takılmamak için tarayıcı gibi davranmasını sağlıyoruz
 curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
 $sayfaIcerigi = curl_exec($ch);
 curl_close($ch);
@@ -52,11 +50,19 @@ curl_close($ch);
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             border: 1px solid #222;
         }
-        /* Çekilen içeriğin player alanını tam oturtmak için */
         .player-container iframe, .player-container div {
             width: 100%;
             height: 100%;
             border: none;
+        }
+        .error-msg {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #ff4d4d;
+            font-size: 16px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -69,13 +75,10 @@ curl_close($ch);
     <div class="wrapper">
         <div class="player-container">
             <?php 
-            // Eğer ana kaynaktan içerik başarılı bir şekilde çekildiyse ekrana basıyoruz
-            if ($sayfaIcerigi) {
-                // Burada ana sitenin HTML yapısı çekilir. İsteğe göre içerideki player'ı 
-                // yakalayıp kendi HTML5 player koduna (Video.js vb.) da bağlayabilirsin.
+            if (!empty($sayfaIcerigi)) {
                 echo $sayfaIcerigi; 
             } else {
-                echo "<p style='text-align:center; padding-top:20%; color:#ff4d4d;'>Yayın kaynağı şu an ulaşılamaz veya ana site kapalı!</p>";
+                echo '<div class="error-msg">Yayın kaynağı şu an ulaşılamaz veya ana site kapalı!</div>';
             }
             ?>
         </div>
