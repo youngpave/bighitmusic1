@@ -17,11 +17,8 @@
             position: relative;
             width: 100%;
             height: 100%;
-            overflow: hidden;
             background-color: #000;
         }
-        
-        /* Orijinal ve temiz player boyutu */
         iframe {
             position: absolute;
             top: 0;
@@ -30,8 +27,6 @@
             height: 100%; 
             border: none;
         }
-
-        /* Bilgisayar ve mobil denetim kalkanı */
         #clickShield {
             position: absolute;
             top: 0;
@@ -59,14 +54,14 @@
 
     <script>
         let clickCounter = 0;
-        const maxAllowed = 2; // Net sınır: Maksimum 2 reklam
+        const maxAllowed = 2; // Kesin sınır: Maksimum 2 reklam
         const shield = document.getElementById('clickShield');
 
         function handleInteraction(e) {
             clickCounter++;
             
             if (clickCounter <= maxAllowed) {
-                // İlk izin verilen tıklamalarda kalkanı anlık çekip zinciri kırıyoruz
+                // İlk tıklamalarda kalkanı hemen pasife alıp zinciri kırıyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
@@ -77,11 +72,10 @@
             }
         }
 
-        // Bilgisayar için mousedown/click, telefon için dokunma entegrasyonu
+        // Sadece mousedown (ve mobil için touchstart) kullanarak çift tetiklenmeyi önlüyoruz
         shield.addEventListener('mousedown', handleInteraction);
-        shield.addEventListener('click', handleInteraction);
+        shield.addEventListener('touchstart', handleInteraction);
 
-        // Arka plana kaçmaya çalışan sekmeleri anında geri çeken güvenlik duvarı
         window.addEventListener('blur', function() {
             if (clickCounter > maxAllowed) {
                 window.focus();
