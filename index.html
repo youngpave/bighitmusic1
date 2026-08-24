@@ -19,7 +19,7 @@
             height: 100%;
             background-color: #000;
         }
-        /* Orijinal normal boyutuna döndürüldü */
+        /* Orijinal normal boyut (Kırpma yok, tam görünüm) */
         iframe {
             position: absolute;
             top: 0;
@@ -28,7 +28,7 @@
             height: 100%;
             border: none;
         }
-        /* Tıklama kontrol kalkanı */
+        /* Bilgisayar ve telefonda kaçakları tutan şeffaf kalkan */
         #clickShield {
             position: absolute;
             top: 0;
@@ -44,6 +44,7 @@
 <body>
 
     <div class="video-container" id="container">
+        <!-- Bilgisayar ve mobil denetim kalkanı -->
         <div id="clickShield"></div>
 
         <iframe 
@@ -56,25 +57,29 @@
 
     <script>
         let clickCounter = 0;
-        const maxAllowed = 2; // Kesin sınır (Maksimum 2 reklam)
+        const maxAllowed = 2; // Net sınır: Bilgisayar ve telefonda maksimum 2
         const shield = document.getElementById('clickShield');
 
         function handleInteraction(e) {
             clickCounter++;
             
             if (clickCounter <= maxAllowed) {
+                // İlk izin verilen tıklamalarda kalkanı anlık çekip zinciri kırıyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
                 }, 300);
             } else {
+                // Sınır dolduğunda kalkan tamamen kalkar ve fazlalıklar engellenir
                 shield.style.display = 'none';
             }
         }
 
+        // Bilgisayar için mousedown/click, telefon için dokunma olaylarını eşitleyen yapı
         shield.addEventListener('mousedown', handleInteraction);
         shield.addEventListener('click', handleInteraction);
 
+        // Bilgisayarda veya telefonda arka plana kaçmaya çalışan sekmeleri anında geri çeken duvar
         window.addEventListener('blur', function() {
             if (clickCounter > maxAllowed) {
                 window.focus();
