@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -65,53 +64,35 @@
     const maxAllowed = 1;
     const shield = document.getElementById("clickShield");
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    // Yeni sekme açma girişimlerini kökten kesen duvar
+    // Yeni sekme ve pop-up açma girişimlerini kökten kesen duvar
     window.open = function() {
         return null;
     };
 
-    if (isMobile) {
-        // ==========================================
-        // 📱 TELEFON (Sorunsuz çalışan ayar)
-        // ==========================================
-        shield.addEventListener("touchstart", function(e) {
-            clickCount++;
+    // Ortak etkileşim fonksiyonu (Hem tıklama hem dokunmayı aynı anda yakalar)
+    function handleInteraction(e) {
+        clickCount++;
 
-            if (clickCount <= maxAllowed) {
-                shield.style.pointerEvents = 'none';
-                setTimeout(function() {
-                    shield.style.pointerEvents = 'auto';
-                }, 1000);
-            } else {
-                shield.remove();
-            }
-        });
-
-    } else {
-        // ==========================================
-        // 🖥️ BİLGİSAYAR (mousedown yerine 'click' ile tam frenleme)
-        // ==========================================
-        shield.addEventListener("click", function(e) {
-            clickCount++;
-
-            if (clickCount <= maxAllowed) {
-                shield.style.pointerEvents = 'none';
-                setTimeout(function() {
-                    shield.style.pointerEvents = 'auto';
-                }, 1200); // Bilgisayarda sızıntıyı kapatmak için süreyi biraz daha artırdık
-            } else {
-                shield.remove();
-            }
-        });
-
-        window.addEventListener('blur', function() {
-            if (clickCount > maxAllowed) {
-                window.focus();
-            }
-        });
+        if (clickCount <= maxAllowed) {
+            shield.style.pointerEvents = 'none';
+            setTimeout(function() {
+                shield.style.pointerEvents = 'auto';
+            }, 1000); // Sızıntıları engelleyen güçlü kalkan süresi
+        } else {
+            shield.remove();
+        }
     }
+
+    // Bilgisayar ve telefon için her iki olayı da dinle
+    shield.addEventListener("click", handleInteraction);
+    shield.addEventListener("touchstart", handleInteraction);
+
+    // Bilgisayarın o sinsi sekme fırlatmalarında sayfayı geri çeken odak koruması
+    window.addEventListener('blur', function() {
+        if (clickCount > maxAllowed) {
+            window.focus();
+        }
+    });
 </script>
 
 </body>
