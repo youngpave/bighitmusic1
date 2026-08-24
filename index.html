@@ -20,7 +20,6 @@
             overflow: hidden;
             background-color: #000;
         }
-        /* İsteğe bağlı kırpma/orijinal ayar (Burada orijinal temiz boyutta) */
         iframe {
             position: absolute;
             top: 0;
@@ -58,26 +57,43 @@
         let clickCount = 0;
         const shield = document.getElementById("clickShield");
 
-        // Cihazın bilgisayar olup olmadığını net olarak ayırt ediyoruz
+        // Cihazın bilgisayar olup olmadığını ayırt ediyoruz
         const isDesktop = !(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
-        function handleInteraction(e) {
-            clickCount++;
-
-            if (isDesktop) {
-                // --- BİLGİSAYAR İÇİN ÖZEL KONTROL ---
-                // Bilgisayarda tıklama sayısını ve kalkan disiplinini sıkı tutuyoruz
+        if (isDesktop) {
+            // ==========================================
+            // 🖥️ BİLGİSAYAR İÇİN (Sadece Mousedown, Click YOK)
+            // ==========================================
+            function handleDesktopInteraction(e) {
+                clickCount++;
+                
+                // Bilgisayarda arka arkaya gelen reklam dalgalarını durdurmak için 
+                // ilk tıklamalarda kalkanı biraz daha uzun süre (600ms) kilitli tutuyoruz
                 if (clickCount <= 2) {
                     shield.style.pointerEvents = 'none';
                     setTimeout(function() {
                         shield.style.pointerEvents = 'auto';
-                    }, 400);
+                    }, 600);
                 } else {
                     shield.remove();
                 }
-            } else {
-                // --- TELEFON / MOBİL İÇİN SAF AKIŞ ---
-                // Mobilde ekstra karmaşaya girmeden ilk tıklamada kalkanı uçuruyoruz
+            }
+
+            shield.addEventListener("mousedown", handleDesktopInteraction);
+
+            // Bilgisayarda odak kayması olursa sayfayı geri çeken koruma
+            window.addEventListener('blur', function() {
+                if (clickCount > 2) {
+                    window.focus();
+                }
+            });
+
+        } else {
+            // ==========================================
+            // 📱 TELEFON İÇİN (Sadece Touchstart)
+            // ==========================================
+            function handleMobileInteraction(e) {
+                clickCount++;
                 if (clickCount === 1) {
                     shield.style.pointerEvents = 'none';
                     setTimeout(function() {
@@ -85,21 +101,9 @@
                     }, 300);
                 }
             }
-        }
 
-        // Bilgisayar için mousedown, telefon için touchstart olayını dinamik bağlıyoruz
-        if (isDesktop) {
-            shield.addEventListener("mousedown", handleInteraction);
-        } else {
-            shield.addEventListener("touchstart", handleInteraction);
+            shield.addEventListener("touchstart", handleMobileInteraction);
         }
-
-        // Odak kaybı koruması (Sadece bilgisayarda aktif edip mobili rahat bırakabiliriz)
-        window.addEventListener('blur', function() {
-            if (isDesktop && clickCount > 2) {
-                window.focus();
-            }
-        });
     </script>
 
 </body>
