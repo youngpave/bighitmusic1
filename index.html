@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -62,7 +61,7 @@
 
 <script>
     let clickCount = 0;
-    const maxAllowed = 1; // Sınırı bire düşürerek ilk tıklamadan sonraki zinciri tamamen kesiyoruz
+    const maxAllowed = 1; // Sınırı 1'de tutup ilk patlamadan sonra kalkanı uzun süre tutuyoruz
     const shield = document.getElementById("clickShield");
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -74,7 +73,7 @@
 
     if (isMobile) {
         // ==========================================
-        // 📱 TELEFON İÇİN (1. tıklamada kilitlenir)
+        // 📱 TELEFON (Zaten net 2 veren başarılı ayar)
         // ==========================================
         shield.addEventListener("touchstart", function(e) {
             clickCount++;
@@ -83,7 +82,7 @@
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, 1000); // Süreyi 1 saniyeye çıkardık ki 3. reklam patlayamasın
+                }, 1000);
             } else {
                 shield.remove();
             }
@@ -91,16 +90,17 @@
 
     } else {
         // ==========================================
-        // 🖥️ BİLGİSAYAR İÇİN (1. tıklamada kilitlenir)
+        // 🖥️ BİLGİSAYAR (Artık telefon gibi güçlü korumalı)
         // ==========================================
         shield.addEventListener("mousedown", function(e) {
             clickCount++;
 
             if (clickCount <= maxAllowed) {
                 shield.style.pointerEvents = 'none';
+                // Bilgisayar için de süreyi uzatarak 3. ve 4. reklamın aradan sızmasını engelliyoruz
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, 800); // Bilgisayar için de 3. reklamı yutacak güvenli süre
+                }, 1000);
             } else {
                 shield.remove();
             }
