@@ -23,6 +23,7 @@
             height: 100%;
             border: none;
         }
+        /* Ekrandaki banner ve tıklama reklamlarını bloke eden kalıcı/akıllı kalkan */
         #clickShield {
             position: absolute;
             top: 0;
@@ -30,7 +31,7 @@
             width: 100%;
             height: 100%;
             z-index: 999;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.01); /* Neredeyse tamamen şeffaf ama tıklamaları yakalar */
             cursor: pointer;
         }
     </style>
@@ -38,8 +39,8 @@
 <body>
 
     <div class="video-container" id="container">
-        <!-- 2 reklam sınırını koruyan katman -->
-        <div id="clickShield" onclick="allowTwoAds()"></div>
+        <!-- Ekranı kaplayan reklamları engelleyen kalkan -->
+        <div id="clickShield" onclick="handleScreenClick()"></div>
 
         <iframe 
             id="playerFrame"
@@ -51,32 +52,21 @@
 
     <script>
         let clickCount = 0;
-        const allowedAds = 2; // İzin verilen maksimum reklam tıklama sayısı
 
-        function allowTwoAds() {
+        function handleScreenClick() {
             clickCount++;
             var shield = document.getElementById('clickShield');
             
-            if (clickCount <= allowedAds) {
-                // İlk 2 tıklamada kalkanı anlık olarak çekip geri koyuyoruz 
-                // ki kaynak sitenin kendi reklam tetikleyicileri (ilk 2 adet) çalışabilsin.
+            if (clickCount === 1) {
+                // İlk tıklamada o zorunlu ilk reklamın açılmasına izin verip kalkanı pasifize ediyoruz
                 shield.style.pointerEvents = 'none';
-                
                 setTimeout(function() {
-                    // 300 milisaniye sonra kalkan tekrar aktifleşiyor 
-                    // (2. reklam da aradan çıktıktan sonra sonrakileri bloke etmek için)
-                    shield.style.pointerEvents = 'auto';
+                    shield.style.display = 'none';
                 }, 300);
-
-                console.log("İzin verilen reklam tıklaması: " + clickCount);
-            } else {
-                // 2 reklam dolduktan sonra kalkanı tamamen ortadan kaldırıyoruz
-                shield.style.display = 'none';
-                console.log("Reklam hakkı doldu, kalkan tamamen kaldırıldı.");
             }
         }
 
-        // Sekme odak kaybı koruması
+        // Ekrandaki reklamların yeni sekme açma girişimlerini anında yakalayıp geri çeken duvar
         window.addEventListener('blur', function() {
             setTimeout(function() {
                 window.focus();
