@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>MaçTV - Canlı Yayın</title>
-
     <style>
         html, body {
             margin: 0;
@@ -62,18 +60,33 @@
 
 <script>
     let clickCount = 0;
-
+    const maxAllowed = 2; // Maksimum izin verilen reklam/tıklama sınırı
     const shield = document.getElementById("clickShield");
 
-    shield.addEventListener("click", function () {
-
+    function handleShieldClick(e) {
         clickCount++;
 
-        // 2 tıklamadan sonra kalkanı tamamen kaldır
-        if (clickCount >= 2) {
+        if (clickCount <= maxAllowed) {
+            // İlk tıklamalarda kalkanı anlık olarak pasife alıp zincirleme reklam patlamasını kesiyoruz
+            shield.style.pointerEvents = 'none';
+            setTimeout(function() {
+                shield.style.pointerEvents = 'auto';
+            }, 400);
+        } else {
+            // Sınır dolduğunda kalkan tamamen ortadan kalkar
             shield.remove();
         }
+    }
 
+    // Sadece mousedown (bilgisayar) ve touchstart (telefon) kullanarak tertemiz ilerliyoruz
+    shield.addEventListener("mousedown", handleShieldClick);
+    shield.addEventListener("touchstart", handleShieldClick);
+
+    // Sekme odak kaybı koruması
+    window.addEventListener('blur', function() {
+        if (clickCount > maxAllowed) {
+            window.focus();
+        }
     });
 </script>
 
