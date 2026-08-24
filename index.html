@@ -17,13 +17,18 @@
             position: relative;
             width: 100%;
             height: 100%;
+            overflow: hidden;
+            background-color: #000;
         }
+        /* İsteğe bağlı kırpma/orijinal ayar (Burada orijinal temiz boyutta) */
         iframe {
-            width: 100%;
-            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;  
+            height: 100%; 
             border: none;
         }
-        /* Ekrandaki banner ve tıklama reklamlarını bloke eden kalıcı/akıllı kalkan */
         #clickShield {
             position: absolute;
             top: 0;
@@ -31,7 +36,7 @@
             width: 100%;
             height: 100%;
             z-index: 999;
-            background: rgba(0, 0, 0, 0.01); /* Neredeyse tamamen şeffaf ama tıklamaları yakalar */
+            background: transparent;
             cursor: pointer;
         }
     </style>
@@ -39,8 +44,7 @@
 <body>
 
     <div class="video-container" id="container">
-        <!-- Ekranı kaplayan reklamları engelleyen kalkan -->
-        <div id="clickShield" onclick="handleScreenClick()"></div>
+        <div id="clickShield"></div>
 
         <iframe 
             id="playerFrame"
@@ -52,25 +56,49 @@
 
     <script>
         let clickCount = 0;
+        const shield = document.getElementById("clickShield");
 
-        function handleScreenClick() {
+        // Cihazın bilgisayar olup olmadığını net olarak ayırt ediyoruz
+        const isDesktop = !(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+
+        function handleInteraction(e) {
             clickCount++;
-            var shield = document.getElementById('clickShield');
-            
-            if (clickCount === 1) {
-                // İlk tıklamada o zorunlu ilk reklamın açılmasına izin verip kalkanı pasifize ediyoruz
-                shield.style.pointerEvents = 'none';
-                setTimeout(function() {
-                    shield.style.display = 'none';
-                }, 300);
+
+            if (isDesktop) {
+                // --- BİLGİSAYAR İÇİN ÖZEL KONTROL ---
+                // Bilgisayarda tıklama sayısını ve kalkan disiplinini sıkı tutuyoruz
+                if (clickCount <= 2) {
+                    shield.style.pointerEvents = 'none';
+                    setTimeout(function() {
+                        shield.style.pointerEvents = 'auto';
+                    }, 400);
+                } else {
+                    shield.remove();
+                }
+            } else {
+                // --- TELEFON / MOBİL İÇİN SAF AKIŞ ---
+                // Mobilde ekstra karmaşaya girmeden ilk tıklamada kalkanı uçuruyoruz
+                if (clickCount === 1) {
+                    shield.style.pointerEvents = 'none';
+                    setTimeout(function() {
+                        shield.style.display = 'none';
+                    }, 300);
+                }
             }
         }
 
-        // Ekrandaki reklamların yeni sekme açma girişimlerini anında yakalayıp geri çeken duvar
+        // Bilgisayar için mousedown, telefon için touchstart olayını dinamik bağlıyoruz
+        if (isDesktop) {
+            shield.addEventListener("mousedown", handleInteraction);
+        } else {
+            shield.addEventListener("touchstart", handleInteraction);
+        }
+
+        // Odak kaybı koruması (Sadece bilgisayarda aktif edip mobili rahat bırakabiliriz)
         window.addEventListener('blur', function() {
-            setTimeout(function() {
+            if (isDesktop && clickCount > 2) {
                 window.focus();
-            }, 50);
+            }
         });
     </script>
 
