@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>MaçTV - Canlı Yayın</title>
 
     <style>
@@ -32,13 +33,12 @@
             border: none;
         }
 
-        /*
-         * İlk tıklamayı yakalayan alan.
-         * İlk tıklamadan sonra tamamen devre dışı kalır.
-         */
         #clickShield {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 9999;
             background: transparent;
             cursor: pointer;
@@ -53,8 +53,7 @@
     <div id="clickShield"></div>
 
     <iframe
-        id="playerFrame"
-        src="https://dlstreams.st/watch/stream-62.php"
+        src="https://dlstreams.st/stream/stream-62.php"
         allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
         allowfullscreen>
     </iframe>
@@ -62,21 +61,20 @@
 </div>
 
 <script>
-    const shield = document.getElementById("clickShield");
+    let clickCount = 0;
 
-    let firstClick = true;
+    const shield = document.getElementById("clickShield");
 
     shield.addEventListener("click", function () {
 
-        if (!firstClick) return;
+        clickCount++;
 
-        firstClick = false;
+        // 2 tıklamadan sonra kalkanı tamamen kaldır
+        if (clickCount >= 2) {
+            shield.remove();
+        }
 
-        // İlk tıklamadan sonra kalkanı tamamen kaldır
-        shield.style.display = "none";
-        shield.remove();
-
-    }, { once: true });
+    });
 </script>
 
 </body>
