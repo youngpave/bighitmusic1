@@ -31,6 +31,7 @@
             border: none;
         }
 
+        /* Zırhlı Kalkan: İlk tıklamalarda reklamın ilk dalgasını alıp sonra tamamen kalkar */
         #clickShield {
             position: absolute;
             top: 0;
@@ -46,11 +47,10 @@
 
 <body>
 
-<div class="video-container" id="container">
+<div class="video-container">
 
     <div id="clickShield"></div>
 
-    <!-- Başlangıçta sandboxsuz (player'ın motoru rahatça açılsın diye) -->
     <iframe
         id="playerFrame"
         src="https://dlstreams.st/stream/stream-62.php"
@@ -62,9 +62,15 @@
 
 <script>
     let clickCount = 0;
-    const maxAllowed = 2; // İlk 2 reklama izin ver
+    const maxAllowed = 2; // İlk 2 tıklama (oynatıcıyı uyandırmak için gereken zorunlu pay)
     const shield = document.getElementById("clickShield");
-    const container = document.getElementById("container");
+
+    // Net Çözüm: Sayfanın kendi içinde yeni sekme açma komutlarını tamamen kilitliyoruz
+    // Bu sayede video player çalışmaya devam eder ama dışarıya sekme fırlatılamaz.
+    window.open = function() {
+        console.log("Engellenen reklam girişimi.");
+        return null;
+    };
 
     function handleInteraction(e) {
         clickCount++;
@@ -75,40 +81,21 @@
             setTimeout(function() {
                 shield.style.pointerEvents = 'auto';
             }, 300);
-        }
-
-        // 2. tıklama dolduğu an eski iframe'i yok edip sandbox'lı versiyonunu çakıyoruz
-        if (clickCount >= maxAllowed) {
-            shield.remove(); // Kalkan tamamen kalkar
-
-            const oldFrame = document.getElementById("playerFrame");
-            const currentSrc = oldFrame.src;
-
-            // Eski iframe'i tamamen sök
-            oldFrame.remove();
-
-            // Sıfırdan YEPYENİ ve KİLİTLİ sandbox'lı iframe'i yerine koyuyoruz
-            const secureFrame = document.createElement("iframe");
-            secureFrame.id = "playerFrame";
-            secureFrame.src = currentSrc;
-            secureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-            secureFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-            secureFrame.setAttribute("allowfullscreen", "true");
-            
-            // CSS konumlandırması bozulmasın diye aynen bırakıyoruz
-            secureFrame.style.position = "absolute";
-            secureFrame.style.top = "-60px";
-            secureFrame.style.left = "-10px";
-            secureFrame.style.width = "calc(100% + 20px)";
-            secureFrame.style.height = "calc(100% + 80px)";
-            secureFrame.style.border = "none";
-
-            container.appendChild(secureFrame);
+        } else {
+            // Sınır dolunca kalkan tamamen çöpe gider, video tamamen serbest kalır
+            shield.remove();
         }
     }
 
     shield.addEventListener("mousedown", handleInteraction);
     shield.addEventListener("touchstart", handleInteraction);
+
+    // Odak kaybı (pop-under) saldırılarını anında geri toparlayan kilit
+    window.addEventListener('blur', function() {
+        if (clickCount > maxAllowed) {
+            window.focus();
+        }
+    });
 </script>
 
 </body>
