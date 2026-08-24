@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -17,9 +18,10 @@
             position: relative;
             width: 100%;
             height: 100%;
-            overflow: hidden;
             background-color: #000;
         }
+        
+        /* Iframe'i doğrudan tam ekran yapıyoruz */
         iframe {
             position: absolute;
             top: 0;
@@ -28,83 +30,24 @@
             height: 100%; 
             border: none;
         }
-        #clickShield {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 999;
-            background: transparent;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
 
     <div class="video-container" id="container">
-        <div id="clickShield"></div>
-
+        <!-- 
+          SİHİRLİ KISIM BURASI: sandbox="allow-scripts allow-same-origin allow-presentation" 
+          Bu sayede site videoyu oynatabilir (scripts ve presentation) ama yeni sekme açamaz, 
+          pop-up fırlatamaz, yönlendirme yapamaz!
+        -->
         <iframe 
             id="playerFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowfullscreen="true">
         </iframe>
     </div>
-
-    <script>
-        let clickCount = 0;
-        const shield = document.getElementById("clickShield");
-
-        // Cihazın bilgisayar olup olmadığını ayırt ediyoruz
-        const isDesktop = !(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-
-        if (isDesktop) {
-            // ==========================================
-            // 🖥️ BİLGİSAYAR İÇİN (Sadece Mousedown, Click YOK)
-            // ==========================================
-            function handleDesktopInteraction(e) {
-                clickCount++;
-                
-                // Bilgisayarda arka arkaya gelen reklam dalgalarını durdurmak için 
-                // ilk tıklamalarda kalkanı biraz daha uzun süre (600ms) kilitli tutuyoruz
-                if (clickCount <= 2) {
-                    shield.style.pointerEvents = 'none';
-                    setTimeout(function() {
-                        shield.style.pointerEvents = 'auto';
-                    }, 600);
-                } else {
-                    shield.remove();
-                }
-            }
-
-            shield.addEventListener("mousedown", handleDesktopInteraction);
-
-            // Bilgisayarda odak kayması olursa sayfayı geri çeken koruma
-            window.addEventListener('blur', function() {
-                if (clickCount > 2) {
-                    window.focus();
-                }
-            });
-
-        } else {
-            // ==========================================
-            // 📱 TELEFON İÇİN (Sadece Touchstart)
-            // ==========================================
-            function handleMobileInteraction(e) {
-                clickCount++;
-                if (clickCount === 1) {
-                    shield.style.pointerEvents = 'none';
-                    setTimeout(function() {
-                        shield.style.display = 'none';
-                    }, 300);
-                }
-            }
-
-            shield.addEventListener("touchstart", handleMobileInteraction);
-        }
-    </script>
 
 </body>
 </html>
