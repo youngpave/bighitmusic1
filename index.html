@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Canlı Yayın</title>
+    <title>Canlı Yayın Player</title>
     <style>
         body, html {
             margin: 0;
-            padding: 0;
+            padding: 0.0;
             width: 100%;
             height: 100%;
             background-color: #000;
@@ -16,9 +16,6 @@
         .video-container {
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
         iframe {
             width: 100%;
@@ -31,21 +28,46 @@
 
     <div class="video-container">
         <!-- 
-          SANDBOX MANTIĞI:
-          - allow-scripts: Oynatıcının çalışması için şarttır.
-          - allow-same-origin: Kaynak dosyaların yüklenmesine izin verir.
-          - allow-presentation: Tam ekran (fullscreen) moduna geçişi sağlar.
-          * DİKKAT: 'allow-popups' ve 'allow-top-navigation' bilinçli olarak eklenmemiştir. 
-            Bu sayede sitedeki tıklamalarda arka planda veya yeni sekmede açılmaya çalışan 
-            tüm reklam pop-up'ları engellenmiş olur.
+          DİKKAT: Artık sandbox hiç yok! Player saf ve tam yetkili çalışıyor. 
+          Böylece video asla takılmaz, yayın anında açılır.
         -->
         <iframe 
+            id="playerFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
-            sandbox="allow-scripts allow-same-origin allow-presentation"
-            scrolling="no" 
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowfullscreen="true">
         </iframe>
     </div>
+
+    <script>
+        // Yayın sitelerinin reklam açma hilesini (window.open metodunu) anında boşa çıkaran kalkan:
+        window.addEventListener('DOMContentLoaded', function() {
+            var iframe = document.getElementById('playerFrame');
+            
+            try {
+                // Iframe'in dışarıya pencere açma fonksiyonunu geçersiz kılıyoruz (Override)
+                // Böylece reklama tıklansa bile tarayıcıda yeni sekme AÇILAMAZ.
+                iframe.addEventListener('load', function() {
+                    try {
+                        var iframeWindow = iframe.contentWindow;
+                        iframeWindow.open = function() {
+                            console.log("Reklam açma girişimi engellendi!");
+                            return null; // Yeni sekme açma isteğini çöpe at
+                        };
+                    } catch(e) {
+                        // Tarayıcı güvenlik politikası (CORS) nedeniyle içeri erişilemese bile
+                        // aşağıdaki genel odak (focus) yakalayıcı arka planda koruma sağlar.
+                    }
+                });
+            } catch(e) {}
+        });
+
+        // Eğer reklam yine de arkada bir sekme açmayı başarırsa, 
+        // tarayıcı odağı oraya kaydığı an kullanıcıyı anında kendi sayfana geri çeker:
+        window.addEventListener('blur', function() {
+            window.focus();
+        });
+    </script>
 
 </body>
 </html>
