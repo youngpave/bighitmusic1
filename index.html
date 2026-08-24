@@ -46,11 +46,11 @@
 
 <body>
 
-<div class="video-container">
+<div class="video-container" id="container">
 
     <div id="clickShield"></div>
 
-    <!-- Başlangıçta sandbox yok, player rahatça çalışıp yayını başlatır -->
+    <!-- Başlangıçta sandboxsuz (player'ın motoru rahatça açılsın diye) -->
     <iframe
         id="playerFrame"
         src="https://dlstreams.st/stream/stream-62.php"
@@ -62,32 +62,51 @@
 
 <script>
     let clickCount = 0;
-    const maxAllowed = 2; // Tam 2 reklam izni
+    const maxAllowed = 2; // İlk 2 reklama izin ver
     const shield = document.getElementById("clickShield");
-    const iframe = document.getElementById("playerFrame");
+    const container = document.getElementById("container");
 
     function handleInteraction(e) {
         clickCount++;
 
         if (clickCount <= maxAllowed) {
-            // İlk 2 tıklamada kalkanı anlık açıp kapanmasına izin veriyoruz
+            // İlk tıklamalarda kalkanı anlık açıp kapatıyoruz
             shield.style.pointerEvents = 'none';
             setTimeout(function() {
                 shield.style.pointerEvents = 'auto';
             }, 300);
         }
 
-        // Sınır dolduğu an (2. tıklamada) KAPIYA SANDBOX'I İNDİRİYORUZ!
+        // 2. tıklama dolduğu an eski iframe'i yok edip sandbox'lı versiyonunu çakıyoruz
         if (clickCount >= maxAllowed) {
-            // 1. Kalkanı tamamen ortadan kaldır
-            shield.remove();
+            shield.remove(); // Kalkan tamamen kalkar
 
-            // 2. Iframe'e kısıtlayıcı sandbox'ı bas (Yeni sekme açmayı, pop-up'ı tamamen yasaklar)
-            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-forms');
+            const oldFrame = document.getElementById("playerFrame");
+            const currentSrc = oldFrame.src;
+
+            // Eski iframe'i tamamen sök
+            oldFrame.remove();
+
+            // Sıfırdan YEPYENİ ve KİLİTLİ sandbox'lı iframe'i yerine koyuyoruz
+            const secureFrame = document.createElement("iframe");
+            secureFrame.id = "playerFrame";
+            secureFrame.src = currentSrc;
+            secureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+            secureFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+            secureFrame.setAttribute("allowfullscreen", "true");
+            
+            // CSS konumlandırması bozulmasın diye aynen bırakıyoruz
+            secureFrame.style.position = "absolute";
+            secureFrame.style.top = "-60px";
+            secureFrame.style.left = "-10px";
+            secureFrame.style.width = "calc(100% + 20px)";
+            secureFrame.style.height = "calc(100% + 80px)";
+            secureFrame.style.border = "none";
+
+            container.appendChild(secureFrame);
         }
     }
 
-    // Bilgisayar ve telefon için tıklama/dokunma dinleyicileri
     shield.addEventListener("mousedown", handleInteraction);
     shield.addEventListener("touchstart", handleInteraction);
 </script>
