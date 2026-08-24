@@ -17,10 +17,14 @@
             position: relative;
             width: 100%;
             height: 100%;
+            overflow: hidden;
+            background-color: #000;
         }
         iframe {
+            position: absolute;
             width: 100%;
-            height: 100%;
+            height: 160%; 
+            top: -30%; 
             border: none;
         }
         #clickShield {
@@ -38,8 +42,8 @@
 <body>
 
     <div class="video-container" id="container">
-        <!-- Sadece 1 reklama izin veren son kalkan -->
-        <div id="clickShield" onclick="allowOneAd()"></div>
+        <!-- Zincirleme reklamları yutan zaman kilitli kalkan -->
+        <div id="clickShield" onclick="blockChainAds()"></div>
 
         <iframe 
             id="playerFrame"
@@ -50,24 +54,33 @@
     </div>
 
     <script>
-        let hasAdPassed = false;
+        let isLocked = false;
 
-        function allowOneAd() {
+        function blockChainAds() {
             var shield = document.getElementById('clickShield');
             
-            if (!hasAdPassed) {
-                hasAdPassed = true;
-                // İlk tıklamada sistemin ilk reklamı atmasına izin veriyoruz
+            if (!isLocked) {
+                isLocked = true;
+                
+                // İlk tıklamada ilk reklamın açılmasına izin veriyoruz
                 shield.style.pointerEvents = 'none';
                 
+                // KRİTİK NOKTA: Kaynak sitenin ark arkaya patlattığı zincirleme reklam 
+                // dalgasını (3-4 saniye süren saldırıyı) engellemek için kalkanı 
+                // kısa bir süre sonra tekrar aktif edip sonra tamamen uçuruyoruz.
                 setTimeout(function() {
-                    // Minik bir süre sonra kalkanı tamamen uçuruyoruz
-                    shield.style.display = 'none';
-                }, 300);
+                    shield.style.pointerEvents = 'auto';
+                    
+                    // 3 saniye sonra zincir bittiğinde kalkanı tamamen kaldırıyoruz
+                    setTimeout(function() {
+                        shield.style.display = 'none';
+                    }, 3000);
+                    
+                }, 500);
             }
         }
 
-        // Sekme odak kaybı koruması
+        // Arkaya kaçmaya çalışan sekmeleri anında geri çeken güvenlik duvarı
         window.addEventListener('blur', function() {
             setTimeout(function() {
                 window.focus();
