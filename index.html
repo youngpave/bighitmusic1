@@ -23,7 +23,6 @@
             height: 100%;
             border: none;
         }
-        /* Videonun üzerine gelen şeffaf reklam kalkanı */
         #clickShield {
             position: absolute;
             top: 0;
@@ -39,8 +38,8 @@
 <body>
 
     <div class="video-container" id="container">
-        <!-- Reklam tuzaklarını tutacak şeffaf katman -->
-        <div id="clickShield" onclick="removeShield()"></div>
+        <!-- 2 reklam sınırını koruyan katman -->
+        <div id="clickShield" onclick="allowTwoAds()"></div>
 
         <iframe 
             id="playerFrame"
@@ -51,84 +50,29 @@
     </div>
 
     <script>
-        // Kullanıcı ilk kez ekrana (reklam tuzaklarının üzerine) tıkladığında 
-        // o ilk tıklamayı yutuyoruz ve kalkanı kaldırıyoruz. Böylece player özgür kalıyor.
-        function removeShield() {
+        let clickCount = 0;
+        const allowedAds = 2; // İzin verilen maksimum reklam tıklama sayısı
+
+        function allowTwoAds() {
+            clickCount++;
             var shield = document.getElementById('clickShield');
-            if (shield) {
-                shield.style.display = 'none'; // Kalkan kalkar, sonraki tıklamalar direkt player'a gider
-            }
-        }
+            
+            if (clickCount <= allowedAds) {
+                // İlk 2 tıklamada kalkanı anlık olarak çekip geri koyuyoruz 
+                // ki kaynak sitenin kendi reklam tetikleyicileri (ilk 2 adet) çalışabilsin.
+                shield.style.pointerEvents = 'none';
+                
+                setTimeout(function() {
+                    // 300 milisaniye sonra kalkan tekrar aktifleşiyor 
+                    // (2. reklam da aradan çıktıktan sonra sonrakileri bloke etmek için)
+                    shield.style.pointerEvents = 'auto';
+                }, 300);
 
-        // Sekme odak kaybı koruması
-        window.addEventListener('blur', function() {
-            setTimeout(function() {
-                window.focus();
-            }, 50);
-        });
-    </script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Canlı Yayın</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            overflow: hidden;
-        }
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        /* Videonun üzerine gelen şeffaf reklam kalkanı */
-        #clickShield {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 999;
-            background: transparent;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="video-container" id="container">
-        <!-- Reklam tuzaklarını tutacak şeffaf katman -->
-        <div id="clickShield" onclick="removeShield()"></div>
-
-        <iframe 
-            id="playerFrame"
-            src="https://dlstreams.st/watch/stream-62.php" 
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            allowfullscreen="true">
-        </iframe>
-    </div>
-
-    <script>
-        // Kullanıcı ilk kez ekrana (reklam tuzaklarının üzerine) tıkladığında 
-        // o ilk tıklamayı yutuyoruz ve kalkanı kaldırıyoruz. Böylece player özgür kalıyor.
-        function removeShield() {
-            var shield = document.getElementById('clickShield');
-            if (shield) {
-                shield.style.display = 'none'; // Kalkan kalkar, sonraki tıklamalar direkt player'a gider
+                console.log("İzin verilen reklam tıklaması: " + clickCount);
+            } else {
+                // 2 reklam dolduktan sonra kalkanı tamamen ortadan kaldırıyoruz
+                shield.style.display = 'none';
+                console.log("Reklam hakkı doldu, kalkan tamamen kaldırıldı.");
             }
         }
 
