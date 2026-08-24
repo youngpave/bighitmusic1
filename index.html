@@ -20,6 +20,7 @@
             overflow: hidden;
             background-color: #000;
         }
+        /* Yayın alanını ortalayıp reklam kalabalığını dışarıda bırakan yapı */
         iframe {
             position: absolute;
             width: 100%;
@@ -27,6 +28,7 @@
             top: -30%; 
             border: none;
         }
+        /* Tıklama başına reklamı sayıp denetleyen akıllı kalkan */
         #clickShield {
             position: absolute;
             top: 0;
@@ -42,8 +44,8 @@
 <body>
 
     <div class="video-container" id="container">
-        <!-- Zincirleme reklamları yutan zaman kilitli kalkan -->
-        <div id="clickShield" onclick="blockChainAds()"></div>
+        <!-- Kaçak reklamları tokatlayan kalkan -->
+        <div id="clickShield" onclick="strictAdControl()"></div>
 
         <iframe 
             id="playerFrame"
@@ -54,37 +56,32 @@
     </div>
 
     <script>
-        let isLocked = false;
+        let clickCounter = 0;
+        const limit = 2; // Kesin sınır: Maksimum 2'yi geçmeyecek!
 
-        function blockChainAds() {
+        function strictAdControl() {
+            clickCounter++;
             var shield = document.getElementById('clickShield');
             
-            if (!isLocked) {
-                isLocked = true;
-                
-                // İlk tıklamada ilk reklamın açılmasına izin veriyoruz
+            if (clickCounter <= limit) {
+                // İzin verilen ilk 1-2 tıklamada reklamın geçmesine izin ver, 
+                // ama hızlıca kalkanı çekip geri koyarak zinciri kır
                 shield.style.pointerEvents = 'none';
-                
-                // KRİTİK NOKTA: Kaynak sitenin ark arkaya patlattığı zincirleme reklam 
-                // dalgasını (3-4 saniye süren saldırıyı) engellemek için kalkanı 
-                // kısa bir süre sonra tekrar aktif edip sonra tamamen uçuruyoruz.
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                    
-                    // 3 saniye sonra zincir bittiğinde kalkanı tamamen kaldırıyoruz
-                    setTimeout(function() {
-                        shield.style.display = 'none';
-                    }, 3000);
-                    
-                }, 500);
+                }, 400);
+            } else {
+                // Sınır aşıldığı an kalkan tamamen kilitlenir ve 
+                // arkaya fırlamaya çalışan fazlalık tüm sekmeleri anında geri çeker
+                shield.style.display = 'none';
             }
         }
 
-        // Arkaya kaçmaya çalışan sekmeleri anında geri çeken güvenlik duvarı
+        // Kaçak sekmeleri ve odak kayıplarını anında yakalayıp kendi sayfana çeken sert duvar
         window.addEventListener('blur', function() {
-            setTimeout(function() {
+            if (clickCounter > limit) {
                 window.focus();
-            }, 50);
+            }
         });
     </script>
 
