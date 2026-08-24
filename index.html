@@ -72,7 +72,7 @@
             }
         }
 
-        // Sadece mousedown (ve mobil için touchstart) kullanarak çift tetiklenmeyi önlüyoruz
+        // Sadece mousedown (bilgisayar) ve touchstart (telefon) kullanıyoruz, click yok!
         shield.addEventListener('mousedown', handleInteraction);
         shield.addEventListener('touchstart', handleInteraction);
 
