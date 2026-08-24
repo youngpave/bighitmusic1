@@ -58,31 +58,23 @@
         const shield = document.getElementById('clickShield');
 
         function handleInteraction(e) {
-            // Mobilde touchstart ve click çakışmasını önlemek için 
-            // aynı milisaniyede gelen mükerrer tetiklemeleri engelliyoruz
-            if (e.type === 'click' && window.lastTouchTime && (Date.now() - window.lastTouchTime < 500)) {
-                return;
-            }
-            if (e.type === 'touchstart') {
-                window.lastTouchTime = Date.now();
-            }
-
             clickCounter++;
             
             if (clickCounter <= maxAllowed) {
+                // İlk tıklamalarda kalkanı hemen pasife alıp zinciri kırıyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
                 }, 300);
             } else {
+                // Sınır dolduğunda kalkan tamamen kalkar
                 shield.style.display = 'none';
             }
         }
 
-        // Bilgisayar için mousedown, telefon için hem touchstart hem click desteği (çakışma korumalı)
+        // Sadece mousedown (ve mobil için touchstart) kullanarak çift tetiklenmeyi önlüyoruz
         shield.addEventListener('mousedown', handleInteraction);
         shield.addEventListener('touchstart', handleInteraction);
-        shield.addEventListener('click', handleInteraction);
 
         window.addEventListener('blur', function() {
             if (clickCounter > maxAllowed) {
