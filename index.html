@@ -1,1 +1,51 @@
-<iframe width="560" height="315"  src="https://tflix.su/watch/bb-erzurumspor-vs-galatasaray/embed" frameborder="0" allowfullscreen></iframe>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaçTV - Canlı Yayın</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+        }
+        .video-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-container">
+        <!-- 
+          SANDBOX MANTIĞI:
+          - allow-scripts: Oynatıcının çalışması için şarttır.
+          - allow-same-origin: Kaynak dosyaların yüklenmesine izin verir.
+          - allow-presentation: Tam ekran (fullscreen) moduna geçişi sağlar.
+          * DİKKAT: 'allow-popups' ve 'allow-top-navigation' bilinçli olarak eklenmemiştir. 
+            Bu sayede sitedeki tıklamalarda arka planda veya yeni sekmede açılmaya çalışan 
+            tüm reklam pop-up'ları engellenmiş olur.
+        -->
+        <iframe 
+            src="https://dlstreams.st/watch/stream-62.php" 
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            scrolling="no" 
+            allowfullscreen="true">
+        </iframe>
+    </div>
+
+</body>
+</html>
