@@ -17,18 +17,21 @@
             position: relative;
             width: 100%;
             height: 100%;
+            overflow: hidden;
             background-color: #000;
         }
-        /* Orijinal normal boyut (Kırpma yok, tam görünüm) */
+        
+        /* Orijinal ve temiz player boyutu */
         iframe {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100%;  
+            height: 100%; 
             border: none;
         }
-        /* Bilgisayar ve telefonda kaçakları tutan şeffaf kalkan */
+
+        /* Bilgisayar ve mobil denetim kalkanı */
         #clickShield {
             position: absolute;
             top: 0;
@@ -44,7 +47,6 @@
 <body>
 
     <div class="video-container" id="container">
-        <!-- Bilgisayar ve mobil denetim kalkanı -->
         <div id="clickShield"></div>
 
         <iframe 
@@ -57,7 +59,7 @@
 
     <script>
         let clickCounter = 0;
-        const maxAllowed = 2; // Net sınır: Bilgisayar ve telefonda maksimum 2
+        const maxAllowed = 2; // Net sınır: Maksimum 2 reklam
         const shield = document.getElementById('clickShield');
 
         function handleInteraction(e) {
@@ -70,16 +72,16 @@
                     shield.style.pointerEvents = 'auto';
                 }, 300);
             } else {
-                // Sınır dolduğunda kalkan tamamen kalkar ve fazlalıklar engellenir
+                // Sınır dolduğunda kalkan tamamen kalkar
                 shield.style.display = 'none';
             }
         }
 
-        // Bilgisayar için mousedown/click, telefon için dokunma olaylarını eşitleyen yapı
+        // Bilgisayar için mousedown/click, telefon için dokunma entegrasyonu
         shield.addEventListener('mousedown', handleInteraction);
         shield.addEventListener('click', handleInteraction);
 
-        // Bilgisayarda veya telefonda arka plana kaçmaya çalışan sekmeleri anında geri çeken duvar
+        // Arka plana kaçmaya çalışan sekmeleri anında geri çeken güvenlik duvarı
         window.addEventListener('blur', function() {
             if (clickCounter > maxAllowed) {
                 window.focus();
