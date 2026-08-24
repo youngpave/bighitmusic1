@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canlı Yayın Player</title>
+    <title>MaçTV - Canlı Yayın</title>
     <style>
         body, html {
             margin: 0;
-            padding: 0.0;
+            padding: 0;
             width: 100%;
             height: 100%;
             background-color: #000;
             overflow: hidden;
         }
         .video-container {
+            position: relative;
             width: 100%;
             height: 100%;
         }
@@ -22,15 +23,25 @@
             height: 100%;
             border: none;
         }
+        /* Videonun üzerine gelen şeffaf reklam kalkanı */
+        #clickShield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            background: transparent;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="video-container">
-        <!-- 
-          DİKKAT: Artık sandbox hiç yok! Player saf ve tam yetkili çalışıyor. 
-          Böylece video asla takılmaz, yayın anında açılır.
-        -->
+    <div class="video-container" id="container">
+        <!-- Reklam tuzaklarını tutacak şeffaf katman -->
+        <div id="clickShield" onclick="removeShield()"></div>
+
         <iframe 
             id="playerFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
@@ -40,32 +51,20 @@
     </div>
 
     <script>
-        // Yayın sitelerinin reklam açma hilesini (window.open metodunu) anında boşa çıkaran kalkan:
-        window.addEventListener('DOMContentLoaded', function() {
-            var iframe = document.getElementById('playerFrame');
-            
-            try {
-                // Iframe'in dışarıya pencere açma fonksiyonunu geçersiz kılıyoruz (Override)
-                // Böylece reklama tıklansa bile tarayıcıda yeni sekme AÇILAMAZ.
-                iframe.addEventListener('load', function() {
-                    try {
-                        var iframeWindow = iframe.contentWindow;
-                        iframeWindow.open = function() {
-                            console.log("Reklam açma girişimi engellendi!");
-                            return null; // Yeni sekme açma isteğini çöpe at
-                        };
-                    } catch(e) {
-                        // Tarayıcı güvenlik politikası (CORS) nedeniyle içeri erişilemese bile
-                        // aşağıdaki genel odak (focus) yakalayıcı arka planda koruma sağlar.
-                    }
-                });
-            } catch(e) {}
-        });
+        // Kullanıcı ilk kez ekrana (reklam tuzaklarının üzerine) tıkladığında 
+        // o ilk tıklamayı yutuyoruz ve kalkanı kaldırıyoruz. Böylece player özgür kalıyor.
+        function removeShield() {
+            var shield = document.getElementById('clickShield');
+            if (shield) {
+                shield.style.display = 'none'; // Kalkan kalkar, sonraki tıklamalar direkt player'a gider
+            }
+        }
 
-        // Eğer reklam yine de arkada bir sekme açmayı başarırsa, 
-        // tarayıcı odağı oraya kaydığı an kullanıcıyı anında kendi sayfana geri çeker:
+        // Sekme odak kaybı koruması
         window.addEventListener('blur', function() {
-            window.focus();
+            setTimeout(function() {
+                window.focus();
+            }, 50);
         });
     </script>
 
