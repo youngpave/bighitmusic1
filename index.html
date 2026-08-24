@@ -31,7 +31,6 @@
             border: none;
         }
 
-        /* Zırhlı Kalkan: İlk tıklamalarda reklamın ilk dalgasını alıp sonra tamamen kalkar */
         #clickShield {
             position: absolute;
             top: 0;
@@ -62,35 +61,54 @@
 
 <script>
     let clickCount = 0;
-    const maxAllowed = 2; // İlk 2 tıklama (oynatıcıyı uyandırmak için gereken zorunlu pay)
+    const maxAllowed = 2;
     const shield = document.getElementById("clickShield");
 
-    // Net Çözüm: Sayfanın kendi içinde yeni sekme açma komutlarını tamamen kilitliyoruz
-    // Bu sayede video player çalışmaya devam eder ama dışarıya sekme fırlatılamaz.
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Yeni sekme açma girişimlerini tamamen kilitleyen duvar
     window.open = function() {
-        console.log("Engellenen reklam girişimi.");
         return null;
     };
 
-    function handleInteraction(e) {
-        clickCount++;
+    if (isMobile) {
+        // ==========================================
+        // 📱 TELEFON İÇİN ÖZEL AYAR (4'e çıkan reklamı engeller)
+        // ==========================================
+        shield.addEventListener("touchstart", function(e) {
+            clickCount++;
 
-        if (clickCount <= maxAllowed) {
-            // İlk tıklamalarda kalkanı anlık açıp kapatıyoruz
-            shield.style.pointerEvents = 'none';
-            setTimeout(function() {
-                shield.style.pointerEvents = 'auto';
-            }, 300);
-        } else {
-            // Sınır dolunca kalkan tamamen çöpe gider, video tamamen serbest kalır
-            shield.remove();
-        }
+            if (clickCount <= maxAllowed) {
+                shield.style.pointerEvents = 'none';
+                // Mobilde dokunma hassasiyeti yüzünden araya kaçan reklamları kesmek için süre biraz daha uzun
+                setTimeout(function() {
+                    shield.style.pointerEvents = 'auto';
+                }, 700);
+            } else {
+                shield.remove();
+            }
+        });
+
+    } else {
+        // ==========================================
+        // 🖥️ BİLGİSAYAR İÇİN HIZLI VE TERTEMİZ AYAR
+        // ==========================================
+        shield.addEventListener("mousedown", function(e) {
+            clickCount++;
+
+            if (clickCount <= maxAllowed) {
+                shield.style.pointerEvents = 'none';
+                // Bilgisayarda her şey hızlı ve akıcıdır, o yüzden süre kısa (300ms) tutulur
+                setTimeout(function() {
+                    shield.style.pointerEvents = 'auto';
+                }, 300);
+            } else {
+                shield.remove();
+            }
+        });
     }
 
-    shield.addEventListener("mousedown", handleInteraction);
-    shield.addEventListener("touchstart", handleInteraction);
-
-    // Odak kaybı (pop-under) saldırılarını anında geri toparlayan kilit
+    // Odak kaybı koruması
     window.addEventListener('blur', function() {
         if (clickCount > maxAllowed) {
             window.focus();
