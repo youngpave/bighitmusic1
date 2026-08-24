@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -61,10 +62,9 @@
 
 <script>
     let clickCount = 0;
-    const maxAllowed = 2; // Her iki cihazda da sınır tam 2 reklam
+    const maxAllowed = 1; // Sınırı bire düşürerek ilk tıklamadan sonraki zinciri tamamen kesiyoruz
     const shield = document.getElementById("clickShield");
 
-    // Cihaz tespiti
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Yeni sekme açma girişimlerini kökten kesen duvar
@@ -74,7 +74,7 @@
 
     if (isMobile) {
         // ==========================================
-        // 📱 TELEFON (Reklamları tam 2'de tutan özel ayar)
+        // 📱 TELEFON İÇİN (1. tıklamada kilitlenir)
         // ==========================================
         shield.addEventListener("touchstart", function(e) {
             clickCount++;
@@ -83,7 +83,7 @@
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, 700); // Mobildeki yığılmayı önleyen süre
+                }, 1000); // Süreyi 1 saniyeye çıkardık ki 3. reklam patlayamasın
             } else {
                 shield.remove();
             }
@@ -91,7 +91,7 @@
 
     } else {
         // ==========================================
-        // 🖥️ BİLGİSAYAR (Hızlı, akıcı ve odak korumalı ana sistem)
+        // 🖥️ BİLGİSAYAR İÇİN (1. tıklamada kilitlenir)
         // ==========================================
         shield.addEventListener("mousedown", function(e) {
             clickCount++;
@@ -100,13 +100,12 @@
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, 300); // Bilgisayar için hızlı tepki süresi
+                }, 800); // Bilgisayar için de 3. reklamı yutacak güvenli süre
             } else {
                 shield.remove();
             }
         });
 
-        // Bilgisayarda odak kayması olursa sayfayı hemen geri çeken kilit
         window.addEventListener('blur', function() {
             if (clickCount > maxAllowed) {
                 window.focus();
