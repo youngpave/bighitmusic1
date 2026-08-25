@@ -53,11 +53,17 @@
     </div>
 
     <script>
-        let clickCounter = parseInt(localStorage.getItem('mactv_persistent_counter') || '0');
-        const maxAllowed = 2; // Kesin sınır: Maksimum 2 reklam
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const shield = document.getElementById('clickShield');
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Yeni sekme açma girişimlerini kökten kesen global engel
+        window.open = function() {
+            return null;
+        };
+
+        // Ortak kalıcı hafıza (localStorage)
+        let clickCounter = parseInt(localStorage.getItem('mactv_persistent_counter') || '0');
+        const maxAllowed = 2; // Kesin sınır: Maksimum 2 reklam
 
         if (clickCounter >= maxAllowed) {
             shield.style.display = 'none';
@@ -69,10 +75,10 @@
             
             if (clickCounter <= maxAllowed) {
                 shield.style.pointerEvents = 'none';
-                // Bilgisayarda arka arkaya tetiklenen reklam script'lerini yutmak için süreyi uzattık
+                // Bilgisayar ve telefon için sızıntı önleyici bekleme süreleri
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, isMobile ? 800 : 1500); 
+                }, isMobile ? 800 : 1200);
             } else {
                 shield.style.display = 'none';
             }
@@ -81,24 +87,12 @@
         if (isMobile) {
             shield.addEventListener('touchstart', handleInteraction);
         } else {
-            // Bilgisayarda hem tıklama hem de fare üzerine gelme (mouseenter) ile tetiklenen kaçakları yakalıyoruz
             shield.addEventListener('click', handleInteraction);
-            
-            // Bilgisayarda fare ilk yaklaştığında arka plandaki tetiklenmeleri önlemek için ekstra güvenlik
-            shield.addEventListener('mouseenter', function() {
-                if (clickCounter < maxAllowed) {
-                    shield.style.pointerEvents = 'none';
-                    setTimeout(function() {
-                        if (clickCounter < maxAllowed) {
-                            shield.style.pointerEvents = 'auto';
-                        }
-                    }, 1200);
-                }
-            });
         }
 
+        // Bilgisayarda arkaya sekme atma trick'lerini anında yakalayıp ana ekrana çeken odak koruması
         window.addEventListener('blur', function() {
-            if (clickCounter > maxAllowed) {
+            if (clickCounter >= maxAllowed) {
                 window.focus();
             }
         });
