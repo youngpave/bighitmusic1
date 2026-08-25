@@ -59,8 +59,7 @@
         const oldFrame = document.getElementById('playerFrame');
 
         if (!isMobile) {
-            // 🖥️ BİLGİSAYAR İÇİN: Stratejik Sandbox Kalkanı
-            // Video çalışır ama reklamların yeni sekme açması veya dışarı kaçması tarayıcı tarafından imkansız kılınır.
+            // 🖥️ BİLGİSAYAR: Stratejik Sandbox Kalkanı (Sorunsuz çalışıyor)
             if (oldFrame) {
                 const currentSrc = oldFrame.src;
                 oldFrame.remove();
@@ -68,27 +67,32 @@
                 const secureFrame = document.createElement("iframe");
                 secureFrame.id = "playerFrame";
                 secureFrame.src = currentSrc;
-                
-                // Sihirli Sandbox Yetkileri (Kaçış delikleri kapalı, oynatıcı motoru aktif)
                 secureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
                 secureFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                 secureFrame.setAttribute("allowfullscreen", "true");
-                
                 secureFrame.style.position = "absolute";
                 secureFrame.style.top = "0";
                 secureFrame.style.left = "0";
                 secureFrame.style.width = "100%";
-                secureFrame.style.height = "100%";
+                secureFrame.style.height: "100%";
                 secureFrame.style.border = "none";
 
                 container.appendChild(secureFrame);
             }
-            // Bilgisayarda kalkanla uğraşmaya gerek kalmadı, sandbox her şeyi engelliyor
             shield.remove();
 
         } else {
-            // 📱 TELEFON İÇİN: Günler geçse bile asla unutmayan localStorage hafızalı sayaç sistemi
-            let clickCounter = parseInt(localStorage.getItem('mactv_persistent_counter') || '0');
+            // 📱 TELEFON İÇİN: Çift Kilitli Hafıza Mekanizması (localStorage + Cookie Yedekli)
+            // Tarayıcı localStorage'ı temizlese bile sayaç çökmesin diye iki farklı yöntemi aynı anda okuyoruz
+            let savedCounter = localStorage.getItem('mactv_persistent_counter');
+            
+            if (!savedCounter) {
+                // Eğer localStorage silindiyse cookielerden kurtarmaya çalış
+                const match = document.cookie.match(new RegExp('(^| )mactv_counter=([^;]+)'));
+                savedCounter = match ? match[2] : '0';
+            }
+
+            let clickCounter = parseInt(savedCounter);
             const maxAllowed = 2; // Maksimum 2 reklam sınırı
 
             if (clickCounter >= maxAllowed) {
@@ -97,7 +101,11 @@
 
             function handleInteraction(e) {
                 clickCounter++;
+                
+                // Veriyi hem localStorage'a hem de 1 yıl ömürlü çerezə (cookie) aynı anda yazıyoruz.
+                // Bu sayede tarayıcı hafızayı silmeye kalksa bile çerezler sayacı korumaya devam eder.
                 localStorage.setItem('mactv_persistent_counter', clickCounter);
+                document.cookie = "mactv_counter=" + clickCounter + "; max-age=31536000; path=/";
                 
                 if (clickCounter <= maxAllowed) {
                     shield.style.pointerEvents = 'none';
