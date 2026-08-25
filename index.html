@@ -62,32 +62,28 @@
 <script>
     const shield = document.getElementById("clickShield");
 
-    // Yeni sekme ve pop-up açma girişimlerini kökten kesen duvar
+    // Yeni sekme açma girişimlerini kökten kesen duvar
     window.open = function() {
         return null;
     };
 
-    // Aradan günler geçse bile unutulmayan kalıcı hafıza tabanlı sayaç (İki cihaz için ortak)
+    // Aradan günler geçse bile unutulmayan kalıcı hafıza tabanlı sayaç
     let clickCount = parseInt(localStorage.getItem('mactv_exact_two_ads') || '0');
-    const maxAllowed = 2; // İzin verilen maksimum reklam sınırı
+    const maxAllowed = 2;
 
     if (clickCount >= maxAllowed) {
-        // Eğer daha önce o 2 reklam hakkı dolduysa, kalkan hiç çıkmaz ve reklamsız/kalıntısız devam eder
         shield.remove();
     } else {
-        // Etkileşim yakalama fonksiyonu (Hem bilgisayar 'click' hem telefon 'touchstart' desteği)
         function handleAdsControl(e) {
             clickCount++;
             localStorage.setItem('mactv_exact_two_ads', clickCount);
 
             if (clickCount < maxAllowed) {
-                // İlk reklamdan sonra sitenin ikinci reklamı fırlatabilmesi için kalkanı kısa bir süre (1 saniye) kilitleyip açıyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
                 }, 1000);
             } else {
-                // 2. reklam hakkı da dolduğu an kalkan tamamen uçurulur ve kapılar kapatılır
                 shield.remove();
             }
         }
@@ -96,10 +92,31 @@
         shield.addEventListener("touchstart", handleAdsControl);
     }
 
-    // Bilgisayar odak koruması (Arka plana sekme atma trick'lerini engeller)
+    // Odak koruması
     window.addEventListener('blur', function() {
         if (clickCount >= maxAllowed) {
             window.focus();
+        }
+    });
+
+    // 🛡️ İFRAME İÇİNDEKİ O AÇILAN REKLAM TUZAKLARINI ENGELLEME
+    // Oynatıcı yüklendikten sonra içindeki dış bağlantı tıklamalarını (target="_blank") yakalayıp engeller
+    const iframe = document.getElementById('playerFrame');
+    iframe.addEventListener('load', function() {
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            // İçerideki tüm tıklamaları ve yeni sekme açma girişimlerini izle
+            iframeDoc.addEventListener('click', function(e) {
+                const target = e.target.closest('a');
+                if (target && target.target === '_blank') {
+                    e.preventDefault(); // Yeni sekme açılmasını engelle
+                    e.stopPropagation();
+                }
+            }, true);
+        } catch (err) {
+            // Çapraz site güvenlik politikaları (CORS) nedeniyle bazı dış kaynaklar engellenebilir, 
+            // bu durumda tarayıcı tabanlı window.open engellememiz zaten devrede kalır.
         }
     });
 </script>
