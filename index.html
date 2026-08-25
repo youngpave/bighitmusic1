@@ -19,8 +19,6 @@
             height: 100%;
             background-color: #000;
         }
-        
-        /* Iframe'i doğrudan tam ekran yapıyoruz */
         iframe {
             position: absolute;
             top: 0;
@@ -29,24 +27,75 @@
             height: 100%; 
             border: none;
         }
+        /* Player'ın üstüne binen ama videonun yüklenmesine asla engel olmayan şeffaf kalkan */
+        #clickShield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            background: transparent;
+        }
     </style>
 </head>
 <body>
 
-    <div class="video-container" id="container">
-        <!-- 
-          SİHİRLİ KISIM BURASI: sandbox="allow-scripts allow-same-origin allow-presentation" 
-          Bu sayede site videoyu oynatabilir (scripts ve presentation) ama yeni sekme açamaz, 
-          pop-up fırlatamaz, yönlendirme yapamaz!
-        -->
+    <div class="video-container">
+        <!-- İlk açılışta tıklamaları yakalayıp reklamları ehlileştiren şeffaf kalkan -->
+        <div id="clickShield"></div>
+
+        <!-- Sandbox YOK! Player tamamen özgür, token ve akış asla tıkanmaz -->
         <iframe 
             id="playerFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
-            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowfullscreen="true">
         </iframe>
     </div>
+
+    <script>
+        const shield = document.getElementById("clickShield");
+        const KEY = "mactv_counter";
+        const MAX = 2; // İlk 2 reklam / etkileşim sınırı
+
+        // Hafızadan durumu kontrol et
+        let count = parseInt(localStorage.getItem(KEY) || "0", 10);
+
+        if (count >= MAX) {
+            // Daha önce hak dolduysa kalkanı direkt yok et
+            shield.remove();
+        } else {
+            shield.addEventListener("touchstart", function () {
+                count++;
+                localStorage.setItem(KEY, count);
+                window.name = count.toString();
+
+                if (count >= MAX) {
+                    // 2. haktan sonra kalkanı tamamen uçur, video tamamen senin olsun
+                    shield.remove();
+                    return;
+                }
+
+                // İlk dokunuştan sonra kısa süre tıklamayı keserek arka arkaya sekme açılmasını engelle
+                shield.style.pointerEvents = "none";
+                setTimeout(function () {
+                    if (shield && shield.parentNode) {
+                        shield.style.pointerEvents = "auto";
+                    }
+                }, 1200);
+
+            }, { passive: true });
+        }
+
+        // Arkaya kaçmaya çalışan sekmeleri anında yakala
+        window.open = function() { return null; };
+        window.addEventListener('blur', function() {
+            if (count >= MAX) {
+                window.focus();
+            }
+        });
+    </script>
 
 </body>
 </html>
