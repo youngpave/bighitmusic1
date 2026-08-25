@@ -61,58 +61,47 @@
 
 <script>
     const shield = document.getElementById("clickShield");
-    const container = document.getElementById("container");
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
+    // Yeni sekme ve pop-up açma girişimlerini kökten kesen duvar
     window.open = function() {
         return null;
     };
 
-    if (!isMobile) {
-        // 🖥️ BİLGİSAYAR: Sıfır reklam, direkt sandbox
-        const oldFrame = document.getElementById("playerFrame");
-        if (oldFrame) {
-            const currentSrc = oldFrame.src;
-            oldFrame.remove();
+    // Aradan günler geçse bile unutulmayan kalıcı hafıza tabanlı sayaç (İki cihaz için ortak)
+    let clickCount = parseInt(localStorage.getItem('mactv_exact_two_ads') || '0');
+    const maxAllowed = 2; // İzin verilen maksimum reklam sınırı
 
-            const secureFrame = document.createElement("iframe");
-            secureFrame.id = "playerFrame";
-            secureFrame.src = currentSrc;
-            secureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation");
-            secureFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-            secureFrame.setAttribute("allowfullscreen", "true");
-            
-            secureFrame.style.position = "absolute";
-            secureFrame.style.top = "-60px";
-            secureFrame.style.left = "-10px";
-            secureFrame.style.width = "calc(100% + 20px)";
-            secureFrame.style.height = "calc(100% + 80px)";
-            secureFrame.style.border = "none";
-
-            container.appendChild(secureFrame);
-        }
+    if (clickCount >= maxAllowed) {
+        // Eğer daha önce o 2 reklam hakkı dolduysa, kalkan hiç çıkmaz ve reklamsız/kalıntısız devam eder
         shield.remove();
     } else {
-        // 📱 TELEFON: Kalıcı hafıza + sızıntı önleyici zamanlı kalkan ayarı
-        let hasClicked = localStorage.getItem('mactv_clicked_once');
+        // Etkileşim yakalama fonksiyonu (Hem bilgisayar 'click' hem telefon 'touchstart' desteği)
+        function handleAdsControl(e) {
+            clickCount++;
+            localStorage.setItem('mactv_exact_two_ads', clickCount);
 
-        if (hasClicked === 'true') {
-            shield.remove(); // Daha önce tıklandıysa kalkan hiç çıkmaz, günler sonra bile tertemiz açılır
-        } else {
-            shield.addEventListener("touchstart", function(e) {
-                localStorage.setItem('mactv_clicked_once', 'true');
-                
-                // İlk dokunuş anında kalkanı hemen yok etmiyoruz; 
-                // sitenin arka arkaya patlatmaya çalıştığı kaçak reklamları engellemek için 
-                // kalkanı 1.2 saniye boyunca devrede (blokeli) tutuyoruz.
+            if (clickCount < maxAllowed) {
+                // İlk reklamdan sonra sitenin ikinci reklamı fırlatabilmesi için kalkanı kısa bir süre (1 saniye) kilitleyip açıyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
-                    shield.remove();
-                }, 1200);
-            });
+                    shield.style.pointerEvents = 'auto';
+                }, 1000);
+            } else {
+                // 2. reklam hakkı da dolduğu an kalkan tamamen uçurulur ve kapılar kapatılır
+                shield.remove();
+            }
         }
+
+        shield.addEventListener("click", handleAdsControl);
+        shield.addEventListener("touchstart", handleAdsControl);
     }
+
+    // Bilgisayar odak koruması (Arka plana sekme atma trick'lerini engeller)
+    window.addEventListener('blur', function() {
+        if (clickCount >= maxAllowed) {
+            window.focus();
+        }
+    });
 </script>
 
 </body>
