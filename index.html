@@ -5,121 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MaçTV - Canlı Yayın</title>
     <style>
-        html, body {
+        body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background: #000;
+            background-color: #000;
             overflow: hidden;
         }
-
         .video-container {
             position: relative;
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            background: #000;
+            background-color: #000;
         }
-
         iframe {
             position: absolute;
-            top: -60px;
-            left: -10px;
-            width: calc(100% + 20px);
-            height: calc(100% + 80px);
+            top: 0;
+            left: 0;
+            width: 100%;  
+            height: 100%; 
             border: none;
         }
-
         #clickShield {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 9999;
+            z-index: 999;
             background: transparent;
             cursor: pointer;
         }
     </style>
 </head>
-
 <body>
 
-<div class="video-container" id="container">
+    <div class="video-container" id="container">
+        <div id="clickShield"></div>
 
-    <div id="clickShield"></div>
+        <iframe 
+            id="playerFrame"
+            src="https://dlstreams.st/watch/stream-62.php" 
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            allowfullscreen="true">
+        </iframe>
+    </div>
 
-    <iframe
-        id="playerFrame"
-        src="https://dlstreams.st/stream/stream-62.php"
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-        allowfullscreen>
-    </iframe>
+    <script>
+        // localStorage kullanarak kalıcı sayaç (Günler sonra bile hafızasını kaybetmez)
+        let clickCounter = parseInt(localStorage.getItem('mactv_persistent_counter') || '0');
+        const maxAllowed = 2; // Kesin sınır: Maksimum 2 reklam
+        const shield = document.getElementById('clickShield');
 
-</div>
+        // Eğer daha önce sınır dolduysa, sayfa açıldığı an kalkanı direkt ortadan kaldır
+        if (clickCounter >= maxAllowed) {
+            shield.style.display = 'none';
+        }
 
-<script>
-    const shield = document.getElementById("clickShield");
-
-    // Yeni sekme açma girişimlerini kökten kesen duvar
-    window.open = function() {
-        return null;
-    };
-
-    // Aradan günler geçse bile unutulmayan kalıcı hafıza tabanlı sayaç
-    let clickCount = parseInt(localStorage.getItem('mactv_exact_two_ads') || '0');
-    const maxAllowed = 2;
-
-    if (clickCount >= maxAllowed) {
-        shield.remove();
-    } else {
-        function handleAdsControl(e) {
-            clickCount++;
-            localStorage.setItem('mactv_exact_two_ads', clickCount);
-
-            if (clickCount < maxAllowed) {
+        function handleInteraction(e) {
+            clickCounter++;
+            localStorage.setItem('mactv_persistent_counter', clickCounter);
+            
+            if (clickCounter <= maxAllowed) {
+                // İlk tıklamalarda kalkanı kısa süreliğine pasife alıp geçişe izin veriyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, 1000);
+                }, 300);
             } else {
-                shield.remove();
+                // Sınır dolduğunda kalkan tamamen kalkar
+                shield.style.display = 'none';
             }
         }
 
-        shield.addEventListener("click", handleAdsControl);
-        shield.addEventListener("touchstart", handleAdsControl);
-    }
+        // Sadece mousedown (ve mobil için touchstart) kullanarak çift tetiklenmeyi önlüyoruz
+        shield.addEventListener('mousedown', handleInteraction);
+        shield.addEventListener('touchstart', handleInteraction);
 
-    // Odak koruması
-    window.addEventListener('blur', function() {
-        if (clickCount >= maxAllowed) {
-            window.focus();
-        }
-    });
-
-    // 🛡️ İFRAME İÇİNDEKİ O AÇILAN REKLAM TUZAKLARINI ENGELLEME
-    // Oynatıcı yüklendikten sonra içindeki dış bağlantı tıklamalarını (target="_blank") yakalayıp engeller
-    const iframe = document.getElementById('playerFrame');
-    iframe.addEventListener('load', function() {
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            
-            // İçerideki tüm tıklamaları ve yeni sekme açma girişimlerini izle
-            iframeDoc.addEventListener('click', function(e) {
-                const target = e.target.closest('a');
-                if (target && target.target === '_blank') {
-                    e.preventDefault(); // Yeni sekme açılmasını engelle
-                    e.stopPropagation();
-                }
-            }, true);
-        } catch (err) {
-            // Çapraz site güvenlik politikaları (CORS) nedeniyle bazı dış kaynaklar engellenebilir, 
-            // bu durumda tarayıcı tabanlı window.open engellememiz zaten devrede kalır.
-        }
-    });
-</script>
+        window.addEventListener('blur', function() {
+            if (clickCounter > maxAllowed) {
+                window.focus();
+            }
+        });
+    </script>
 
 </body>
 </html>
