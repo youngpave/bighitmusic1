@@ -94,25 +94,15 @@
         }
         shield.remove();
     } else {
-        // 📱 TELEFON: Günler geçse bile unutmayan kalıcı hafıza (localStorage)
-        let clickCount = parseInt(localStorage.getItem('mactv_clicks_perm') || '0');
-        const maxAllowed = 1;
+        // 📱 TELEFON: Sadece 1 reklam izni veren kalıcı hafıza
+        let hasClicked = localStorage.getItem('mactv_clicked_once');
 
-        if (clickCount > maxAllowed) {
-            shield.remove(); // Daha önce sınır dolduysa kalkanı hiç getirme, reklam döngüsünü engelle
+        if (hasClicked === 'true') {
+            shield.remove(); // Daha önce tıklandıysa kalkan hiç çıkmaz, fazladan reklam açılmaz
         } else {
             shield.addEventListener("touchstart", function(e) {
-                clickCount++;
-                localStorage.setItem('mactv_clicks_perm', clickCount);
-
-                if (clickCount <= maxAllowed) {
-                    shield.style.pointerEvents = 'none';
-                    setTimeout(function() {
-                        shield.style.pointerEvents = 'auto';
-                    }, 1200);
-                } else {
-                    shield.remove();
-                }
+                localStorage.setItem('mactv_clicked_once', 'true');
+                shield.remove(); // İlk dokunmada kalkanı uçuruyoruz, böylece sayaç 1'de kalıyor
             });
         }
     }
