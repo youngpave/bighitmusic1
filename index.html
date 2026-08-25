@@ -10,9 +10,7 @@
             width: 100%;
             height: 100%;
             background: #000;
-            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
-            color: #fff;
         }
 
         .app-container {
@@ -36,83 +34,13 @@
             height: 100%;
             border: none;
         }
-
-        /* Reklamları ve Pop-up'ları %100 Engelleyen Giriş Kalkanı */
-        #antiAdShield {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 10, 15, 0.92);
-            backdrop-filter: blur(15px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .shield-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 2.5rem;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-            max-width: 380px;
-            width: 100%;
-        }
-
-        .shield-card h2 {
-            font-size: 1.4rem;
-            margin-bottom: 0.8rem;
-            color: #fff;
-        }
-
-        .shield-card p {
-            font-size: 0.9rem;
-            opacity: 0.75;
-            margin-bottom: 1.8rem;
-            line-height: 1.6;
-        }
-
-        .start-btn {
-            display: inline-block;
-            width: 100%;
-            padding: 0.9rem 1.5rem;
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .start-btn:active {
-            transform: scale(0.96);
-        }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <div class="player-box" id="playerContainer">
-            
-            <!-- Anti-Ad Kalkan Ekranı -->
-            <div id="antiAdShield">
-                <div class="shield-card">
-                    <h2>🛡️ Güvenli Yayın Modu</h2>
-                    <p>Tüm açılır pencereler ve reklamlar engellendi. Yayını başlatmak için dokunun.</p>
-                    <button class="start-btn" id="launchBtn">Yayını Başlat 🚀</button>
-                </div>
-            </div>
-
-            <!-- Canlı Yayın Oynatıcısı -->
+            <!-- Canlı Yayın Oynatıcısı (Buton olmadan doğrudan yüklenir) -->
             <iframe 
                 id="streamFrame"
                 src="https://dlstreams.st/watch/stream-62.php" 
@@ -126,42 +54,22 @@
         (function() {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const container = document.getElementById("playerContainer");
-            const shield = document.getElementById("antiAdShield");
-            const launchBtn = document.getElementById("launchBtn");
             let frame = document.getElementById("streamFrame");
 
-            // Tüm tarayıcılarda yeni sekme açma (window.open) girişimlerini tamamen imha et
+            // Yeni sekme açma ve pop-up girişimlerini tamamen imha et
             window.open = function() { return null; };
             window.alert = function() {};
 
-            const STORAGE_KEY = "stream_ultra_secured";
-            const isSecured = window.location.hash.includes("clean=true") || localStorage.getItem(STORAGE_KEY) === "true";
-
-            if (isSecured) {
-                shield.remove();
-            }
-
-            launchBtn.addEventListener("click", function() {
-                try {
-                    localStorage.setItem(STORAGE_KEY, "true");
-                    history.replaceState(null, "", "#clean=true");
-                } catch (e) {}
-
-                shield.style.opacity = "0";
-                setTimeout(() => shield.remove(), 300);
-            });
-
-            // Bilgisayar için katı donanımsal sandbox filtresi
+            // Bilgisayar için katı donanımsal sandbox filtresi (Eklenti mantığı)
             if (!isMobile) {
                 if (frame) {
                     const src = frame.src;
                     frame.remove();
 
-                    const secureFrame => document.createElement("iframe"); // syntax düzeltmesi
                     const secureFrameElem = document.createElement("iframe");
                     secureFrameElem.id = "streamFrame";
                     secureFrameElem.src = src;
-                    // ASLA allow-popups vermiyoruz, böylece reklamlar yeni sekme açamaz!
+                    // allow-popups verilmediği için reklamlar asla yeni sekme açamaz!
                     secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
                     secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                     secureFrameElem.setAttribute("allowfullscreen", "true");
@@ -172,9 +80,7 @@
 
             // Sekme değiştirme hilelerini engelle
             window.addEventListener('blur', function() {
-                if (localStorage.getItem(STORAGE_KEY) === "true" || window.location.hash.includes("clean=true")) {
-                    window.focus();
-                }
+                window.focus();
             });
         })();
     </script>
