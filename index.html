@@ -19,7 +19,7 @@
             height: 100%;
             background-color: #000;
         }
-        #playerFrame {
+        iframe {
             position: absolute;
             top: 0;
             left: 0;
@@ -27,22 +27,47 @@
             height: 100%; 
             border: none;
         }
-        /* Telefonda reklamları süzmek için şeffaf kalkan */
-        #clickShield {
+        /* Telefonda ilk başta çıkan şık Başlat Butonu */
+        #startOverlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 999;
-            background: transparent;
+            background: linear-gradient(135deg, #111 0%, #222 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        #startBtn {
+            padding: 1rem 2.5rem;
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.4);
+            transition: transform 0.2s;
+        }
+        #startBtn:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
     <div class="video-container" id="container">
-        <div id="clickShield"></div>
+        <!-- Telefonda reklamları bloke eden açılış ekranı -->
+        <div id="startOverlay">
+            <h2 style="margin-bottom: 1rem;">MaçTV Canlı Yayın</h2>
+            <button id="startBtn">Yayın Başlat 🚀</button>
+        </div>
 
         <iframe 
             id="playerFrame"
@@ -54,10 +79,12 @@
 
     <script>
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const shield = document.getElementById("clickShield");
+        const overlay = document.getElementById("startOverlay");
+        const KEY = "mactv_started";
 
         if (!isMobile) {
-            // 🖥️ BİLGİSAYAR: Zırhlı sandbox güvenlik duvarı
+            // 🖥️ BİLGİSAYAR: Doğrudan zırhlı sandbox
+            overlay.remove();
             const container = document.getElementById("container");
             const oldFrame = document.getElementById("playerFrame");
             if (oldFrame) {
@@ -82,59 +109,26 @@
 
                 container.appendChild(secureFrame);
             }
-            shield.remove();
         } 
         else {
-            // 📱 TELEFON: Asla unutmayan URL Hash mühürlü sayaç ve kalkan sistemi
-            const KEY = "mactv_counter";
-            const MAX = 2;
-
-            function getCount() {
-                try {
-                    if (window.location.hash.includes("mactv_done=true")) return MAX;
-                    const localVal = localStorage.getItem(KEY);
-                    const nameVal = window.name;
-                    if (localVal >= MAX || nameVal >= MAX) return MAX;
-                    return parseInt(localVal || nameVal || "0", 10);
-                } catch (e) {
-                    return 0;
-                }
-            }
-
-            let count = getCount();
-
-            if (count >= MAX) {
-                shield.remove();
+            // 📱 TELEFON: Daha önce başlatıldıysa veya URL mühürlü ise direkt kaldır
+            if (window.location.hash.includes("mactv_done=true") || localStorage.getItem(KEY) === "true") {
+                overlay.remove();
             } else {
-                shield.addEventListener("touchstart", function () {
-                    count++;
-                    
+                document.getElementById("startBtn").addEventListener("click", function () {
                     try {
-                        localStorage.setItem(KEY, count);
-                        window.name = count.toString();
-                        if (count >= MAX) {
-                            history.replaceState(null, "", "#mactv_done=true");
-                        }
+                        localStorage.setItem(KEY, "true");
+                        history.replaceState(null, "", "#mactv_done=true");
                     } catch (e) {}
 
-                    if (count >= MAX) {
-                        shield.remove();
-                        return;
-                    }
-
-                    shield.style.pointerEvents = "none";
-                    setTimeout(function () {
-                        if (shield && shield.parentNode) {
-                            shield.style.pointerEvents = "auto";
-                        }
-                    }, 1200);
-
-                }, { passive: true });
+                    // Butona basıldığı an arayüzü uçur, yayın tertemiz başlasın
+                    overlay.remove();
+                });
             }
 
             window.open = function() { return null; };
             window.addEventListener('blur', function() {
-                if (getCount() >= MAX) {
+                if (localStorage.getItem(KEY) === "true" || window.location.hash.includes("mactv_done=true")) {
                     window.focus();
                 }
             });
