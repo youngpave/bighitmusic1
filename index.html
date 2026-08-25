@@ -94,15 +94,22 @@
         }
         shield.remove();
     } else {
-        // 📱 TELEFON: Sadece 1 reklam izni veren kalıcı hafıza
+        // 📱 TELEFON: Kalıcı hafıza + sızıntı önleyici zamanlı kalkan ayarı
         let hasClicked = localStorage.getItem('mactv_clicked_once');
 
         if (hasClicked === 'true') {
-            shield.remove(); // Daha önce tıklandıysa kalkan hiç çıkmaz, fazladan reklam açılmaz
+            shield.remove(); // Daha önce tıklandıysa kalkan hiç çıkmaz, günler sonra bile tertemiz açılır
         } else {
             shield.addEventListener("touchstart", function(e) {
                 localStorage.setItem('mactv_clicked_once', 'true');
-                shield.remove(); // İlk dokunmada kalkanı uçuruyoruz, böylece sayaç 1'de kalıyor
+                
+                // İlk dokunuş anında kalkanı hemen yok etmiyoruz; 
+                // sitenin arka arkaya patlatmaya çalıştığı kaçak reklamları engellemek için 
+                // kalkanı 1.2 saniye boyunca devrede (blokeli) tutuyoruz.
+                shield.style.pointerEvents = 'none';
+                setTimeout(function() {
+                    shield.remove();
+                }, 1200);
             });
         }
     }
