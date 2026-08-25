@@ -53,12 +53,13 @@
     </div>
 
     <script>
-        // localStorage kullanarak kalıcı sayaç (Günler sonra bile hafızasını kaybetmez)
         let clickCounter = parseInt(localStorage.getItem('mactv_persistent_counter') || '0');
         const maxAllowed = 2; // Kesin sınır: Maksimum 2 reklam
         const shield = document.getElementById('clickShield');
 
-        // Eğer daha önce sınır dolduysa, sayfa açıldığı an kalkanı direkt ortadan kaldır
+        // Cihaz tespiti
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         if (clickCounter >= maxAllowed) {
             shield.style.display = 'none';
         }
@@ -68,20 +69,21 @@
             localStorage.setItem('mactv_persistent_counter', clickCounter);
             
             if (clickCounter <= maxAllowed) {
-                // İlk tıklamalarda kalkanı kısa süreliğine pasife alıp geçişe izin veriyoruz
                 shield.style.pointerEvents = 'none';
                 setTimeout(function() {
                     shield.style.pointerEvents = 'auto';
-                }, 300);
+                }, 800); // Süreyi biraz daha güvenli seviyeye çıkardık ki kaçak reklamlar sızmasın
             } else {
-                // Sınır dolduğunda kalkan tamamen kalkar
                 shield.style.display = 'none';
             }
         }
 
-        // Sadece mousedown (ve mobil için touchstart) kullanarak çift tetiklenmeyi önlüyoruz
-        shield.addEventListener('mousedown', handleInteraction);
-        shield.addEventListener('touchstart', handleInteraction);
+        // Bilgisayar ve telefon için olayları net bir şekilde ayırdık
+        if (isMobile) {
+            shield.addEventListener('touchstart', handleInteraction);
+        } else {
+            shield.addEventListener('click', handleInteraction);
+        }
 
         window.addEventListener('blur', function() {
             if (clickCounter > maxAllowed) {
