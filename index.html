@@ -60,7 +60,6 @@
 </div>
 
 <script>
-    let clickCount = 0;
     const shield = document.getElementById("clickShield");
     const container = document.getElementById("container");
 
@@ -70,18 +69,16 @@
         return null;
     };
 
-    // 🖥️ BİLGİSAYAR İÇİN: Sayfa açıldığı an (veya ilk tıklamada) iframe'i tamamen sandbox'a alıp reklamları sıfırlıyoruz
     if (!isMobile) {
+        // 🖥️ BİLGİSAYAR: Sıfır reklam, direkt sandbox
         const oldFrame = document.getElementById("playerFrame");
         if (oldFrame) {
             const currentSrc = oldFrame.src;
             oldFrame.remove();
 
-            // Bilgisayar için reklamları tamamen bitiren kilitli sandbox iframe
             const secureFrame = document.createElement("iframe");
             secureFrame.id = "playerFrame";
             secureFrame.src = currentSrc;
-            // Sadece videonun çalışmasına izin verip reklam script'lerini tamamen patlatan sandbox
             secureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation");
             secureFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
             secureFrame.setAttribute("allowfullscreen", "true");
@@ -95,23 +92,29 @@
 
             container.appendChild(secureFrame);
         }
-        // Bilgisayarda kalkanı tamamen uçuruyoruz çünkü zaten sandbox reklamları engelliyor
         shield.remove();
     } else {
-        // 📱 TELEFON İÇİN: Eskisi gibi 2 reklam izni veren kalkan sistemi
+        // 📱 TELEFON: Günler geçse bile unutmayan kalıcı hafıza (localStorage)
+        let clickCount = parseInt(localStorage.getItem('mactv_clicks_perm') || '0');
         const maxAllowed = 1;
-        function handleMobileInteraction(e) {
-            clickCount++;
-            if (clickCount <= maxAllowed) {
-                shield.style.pointerEvents = 'none';
-                setTimeout(function() {
-                    shield.style.pointerEvents = 'auto';
-                }, 1000);
-            } else {
-                shield.remove();
-            }
+
+        if (clickCount > maxAllowed) {
+            shield.remove(); // Daha önce sınır dolduysa kalkanı hiç getirme, reklam döngüsünü engelle
+        } else {
+            shield.addEventListener("touchstart", function(e) {
+                clickCount++;
+                localStorage.setItem('mactv_clicks_perm', clickCount);
+
+                if (clickCount <= maxAllowed) {
+                    shield.style.pointerEvents = 'none';
+                    setTimeout(function() {
+                        shield.style.pointerEvents = 'auto';
+                    }, 1200);
+                } else {
+                    shield.remove();
+                }
+            });
         }
-        shield.addEventListener("touchstart", handleMobileInteraction);
     }
 </script>
 
