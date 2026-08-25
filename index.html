@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Akıllı Oynatıcı Eklentisi</title>
+    <title>MaçTV - Kesintisiz & Reklamsız</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            background: #000;
             font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
             color: #fff;
         }
 
-        /* Eklenti Tarzı Ana Çerçeve */
         .app-container {
             position: relative;
             width: 100%;
@@ -38,15 +37,15 @@
             border: none;
         }
 
-        /* Mobil ve İlk Açılış İçin AdBlocker Kalkan Overlay'i */
-        #adBlockShield {
+        /* Reklamları ve Pop-up'ları %100 Engelleyen Giriş Kalkanı */
+        #antiAdShield {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
+            background: rgba(10, 10, 15, 0.92);
+            backdrop-filter: blur(15px);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -57,49 +56,45 @@
         }
 
         .shield-card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            max-width: 400px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            max-width: 380px;
             width: 100%;
         }
 
         .shield-card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: #f8fafc;
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+            color: #fff;
         }
 
         .shield-card p {
-            font-size: 0.95rem;
-            opacity: 0.8;
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
+            font-size: 0.9rem;
+            opacity: 0.75;
+            margin-bottom: 1.8rem;
+            line-height: 1.6;
         }
 
         .start-btn {
             display: inline-block;
             width: 100%;
-            padding: 0.8rem 1.5rem;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-            transition: transform 0.2s, opacity 0.2s;
-        }
-
-        .start-btn:hover {
-            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+            transition: transform 0.2s;
         }
 
         .start-btn:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
         }
     </style>
 </head>
@@ -108,11 +103,11 @@
     <div class="app-container">
         <div class="player-box" id="playerContainer">
             
-            <!-- AdBlocker Eklenti Paneli (İlk açılışta reklamları süzmek için) -->
-            <div id="adBlockShield">
+            <!-- Anti-Ad Kalkan Ekranı -->
+            <div id="antiAdShield">
                 <div class="shield-card">
-                    <h2>🛡️ AdBlock Koruması Aktif</h2>
-                    <p>Yayın güvenli bir şekilde süzülerek hazırlanmıştır. İzlemeye başlamak için aşağıdaki butona tıklayın.</p>
+                    <h2>🛡️ Güvenli Yayın Modu</h2>
+                    <p>Tüm açılır pencereler ve reklamlar engellendi. Yayını başlatmak için dokunun.</p>
                     <button class="start-btn" id="launchBtn">Yayını Başlat 🚀</button>
                 </div>
             </div>
@@ -131,61 +126,56 @@
         (function() {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const container = document.getElementById("playerContainer");
-            const shield = document.getElementById("adBlockShield");
+            const shield = document.getElementById("antiAdShield");
             const launchBtn = document.getElementById("launchBtn");
             let frame = document.getElementById("streamFrame");
 
-            // 1. ADIM: EKLENTİ SEVİYESİNDE POP-UP VE YÖNLENDİRME ENGELLEME (AdBlocker Mantığı)
-            window.open = function() { console.warn("AdBlock: Açılır pencere engellendi."); return null; };
-            window.alert = function() {}; // Gereksiz site içi uyarıları sustur
+            // Tüm tarayıcılarda yeni sekme açma (window.open) girişimlerini tamamen imha et
+            window.open = function() { return null; };
+            window.alert = function() {};
 
-            // 2. ADIM: BİLGİSAYAR İÇİN DONANIMSAL SANDBOX ZIRHI
+            const STORAGE_KEY = "stream_ultra_secured";
+            const isSecured = window.location.hash.includes("clean=true") || localStorage.getItem(STORAGE_KEY) === "true";
+
+            if (isSecured) {
+                shield.remove();
+            }
+
+            launchBtn.addEventListener("click", function() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, "true");
+                    history.replaceState(null, "", "#clean=true");
+                } catch (e) {}
+
+                shield.style.opacity = "0";
+                setTimeout(() => shield.remove(), 300);
+            });
+
+            // Bilgisayar için katı donanımsal sandbox filtresi
             if (!isMobile) {
-                // Bilgisayarda kullanıcı tıklamasına gerek yok, eklenti otomatik korumayı devreye sokar
-                shield.style.display = "none";
-
                 if (frame) {
                     const src = frame.src;
                     frame.remove();
 
-                    const secureFrame = document.createElement("iframe");
-                    secureFrame.id = "streamFrame";
-                    secureFrame.src = src;
-                    // Tarayıcı tabanlı reklam engelleyici sandbox kural seti
-                    secureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    secureFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                    secureFrame.setAttribute("allowfullscreen", "true");
+                    const secureFrame => document.createElement("iframe"); // syntax düzeltmesi
+                    const secureFrameElem = document.createElement("iframe");
+                    secureFrameElem.id = "streamFrame";
+                    secureFrameElem.src = src;
+                    // ASLA allow-popups vermiyoruz, böylece reklamlar yeni sekme açamaz!
+                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                    secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+                    secureFrameElem.setAttribute("allowfullscreen", "true");
                     
-                    container.appendChild(secureFrame);
+                    container.appendChild(secureFrameElem);
                 }
-            } 
-            // 3. ADIM: MOBİL İÇİN HHAFIZA KİLİTLİ URL MÜHÜRLÜ EKLENTİ SİSTEMİ
-            else {
-                const STORAGE_KEY = "stream_adblock_secured";
-                const isSecured = window.location.hash.includes("secured=true") || localStorage.getItem(STORAGE_KEY) === "true";
-
-                if (isSecured) {
-                    shield.style.display = "none";
-                } else {
-                    launchBtn.addEventListener("click", function() {
-                        try {
-                            localStorage.setItem(STORAGE_KEY, "true");
-                            history.replaceState(null, "", "#secured=true");
-                        } catch (e) {}
-
-                        // Kalkanı kaldır, yayını serbest bırak
-                        shield.style.opacity = "0";
-                        setTimeout(() => shield.remove(), 300);
-                    });
-                }
-
-                // Sekme değiştirme / blur tetiklemeli reklam fırlatmalarını engelle
-                window.addEventListener('blur', function() {
-                    if (localStorage.getItem(STORAGE_KEY) === "true" || window.location.hash.includes("secured=true")) {
-                        window.focus();
-                    }
-                });
             }
+
+            // Sekme değiştirme hilelerini engelle
+            window.addEventListener('blur', function() {
+                if (localStorage.getItem(STORAGE_KEY) === "true" || window.location.hash.includes("clean=true")) {
+                    window.focus();
+                }
+            });
         })();
     </script>
 </body>
