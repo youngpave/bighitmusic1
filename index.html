@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Maskelenmiş Kusursuz Görünüm</title>
+    <title>MaçTV - Kesintisiz Geçiş</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -17,49 +17,53 @@
             position: relative;
             width: 100%;
             height: 100%;
-            background: #000;
-            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* İframe'i tam ekrana oturtuyoruz */
+        .player-box {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
         iframe {
             width: 100%;
             height: 100%;
             border: none;
-        }
-
-        /* 
-          🎯 ÜST MASKE (PERDE):
-          Ekranın en tepesine siyah bir şerit çekerek sitenin kendi orijinal logosunu 
-          ve menüsünü kapatıyoruz. beIN barı bu perdenin hemen altında kusursuzca kalır.
-          İhtiyaca göre height değerini (örn: 60px veya 90px) ayarlayabilirsin.
-        */
-        .top-mask {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 75px; /* Üst logoyu gizleyecek şerit yüksekliği */
-            background: #000;
-            z-index: 999; /* En üstte durmasını sağlar */
-            pointer-events: none; /* Tıklamalara engel olmaz, altındaki beIN okları çalışır */
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Üstteki istenmeyen site logosunu ve menüyü gizleyen maske -->
-        <div class="top-mask"></div>
-
-        <!-- Canlı Yayın Oynatıcısı -->
-        <iframe 
-            id="streamFrame"
-            src="https://www.taraftarium201.top/" 
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            allowfullscreen="true">
-        </iframe>
+        <div class="player-box" id="playerContainer">
+            <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda yüklenir) -->
+            <iframe 
+                id="streamFrame"
+                src="https://dlstreams.st/watch/stream-62.php" 
+                sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allowfullscreen="true">
+            </iframe>
+        </div>
     </div>
 
+    <script>
+        (function() {
+            // Tam 3 saniye sonra oynatıcıya hiç dokunmadan, sayfayı yenilemeden 
+            // arka planda sert sandbox kuralını doğrudan çakıyoruz.
+            setTimeout(function() {
+                const frame = document.getElementById("streamFrame");
+                if (frame) {
+                    // Sert sandbox: pop-up izinleri tamamen sökülür, reklamlar sıfırlanır
+                    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                    console.log("Sert Sandbox sessizce devreye girdi, akış bozulmadı!");
+                }
+            }, 3 * 1000); // 3 saniye
+        })();
+    </script>
 </body>
 </html>
