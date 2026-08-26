@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Canlı Yayın Hub</title>
+    <title>MaçTV - Kesin Sandbox Hub</title>
     <style>
         * {
             box-sizing: border-box;
@@ -116,8 +116,8 @@
 <body>
 
     <div class="container">
-        <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda yüklenir) -->
-        <div class="video-wrapper">
+        <!-- Canlı Yayın Oynatıcısı Alanı -->
+        <div class="video-wrapper" id="playerContainer">
             <iframe 
                 id="streamFrame"
                 src="https://dlstreams.st/watch/stream-62.php" 
@@ -148,36 +148,61 @@
     </div>
 
     <script>
-        // Kanal değiştirme fonksiyonu (Geçişte ilk açılış esnek moduyla başlar)
+        // Aktif oynatılan URL'yi takip etmek için değişken
+        let currentUrl = "https://dlstreams.st/watch/stream-62.php";
+
+        // İframe'i istenen sandbox moduyla sıfırdan kuran ana fonksiyon
+        function rebuildPlayer(url, strictMode) {
+            const container = document.getElementById("playerContainer");
+            
+            // Eski iframe'i tamamen sök
+            let oldFrame = document.getElementById("streamFrame");
+            if (oldFrame) {
+                oldFrame.remove();
+            }
+
+            // Yeni iframe üret
+            const newFrame = document.createElement("iframe");
+            newFrame.id = "streamFrame";
+            newFrame.src = url;
+
+            if (strictMode) {
+                // 🛡️ SERT SANDBOX (Reklamları sıfırlayan kilit mod)
+                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+            } else {
+                // 🔓 ESNEK MOD (İlk açılış / ilk 3 saniye için izinli mod)
+                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
+            }
+
+            newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+            newFrame.setAttribute("allowfullscreen", "true");
+            
+            container.appendChild(newFrame);
+        }
+
+        // Kanal değiştirme butonu
         function changeStream(streamUrl, clickedButton) {
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             clickedButton.classList.add('active');
 
-            const frame = document.getElementById('streamFrame');
-            // Yeni kanala geçerken ilk açılışta reklamlar takılmasın diye esnek sandbox verilir
-            frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
-            frame.src = streamUrl;
+            currentUrl = streamUrl;
 
-            // Her kanal değişiminden 3 saniye sonra da sert sandbox arkadan devreye girer
+            // Kanala ilk tıklandığında esnek modla açılır (reklamlar takılmasın diye)
+            rebuildPlayer(currentUrl, false);
+
+            // Tam 3 saniye sonra arkadan sert sandbox zırhı vurulur
             setTimeout(function() {
-                if (frame) {
-                    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                }
+                rebuildPlayer(currentUrl, true);
             }, 3 * 1000);
         }
 
-        // İlk sayfa açılışından 3 saniye sonra sert sandbox zırhının devreye girmesi
-        (function() {
-            setTimeout(function() {
-                const frame = document.getElementById("streamFrame");
-                if (frame) {
-                    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("Sert Sandbox sessizce devreye girdi!");
-                }
-            }, 3 * 1000);
-        })();
+        // Sayfa ilk açıldığında 3 saniye sonra sert sandbox'ı devreye sokan tetikleyici
+        setTimeout(function() {
+            rebuildPlayer(currentUrl, true);
+            console.log("Kesin Sert Sandbox devreye sokuldu!");
+        }, 3 * 1000);
     </script>
 
 </body>
