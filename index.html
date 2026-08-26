@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Yumuşak ve Kesintisiz Oynatıcı</title>
+    <title>MaçTV - Kesintisiz Oynatıcı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -63,9 +63,7 @@
                 secureFrameElem.id = "streamFrame";
                 secureFrameElem.src = src;
                 
-                // YUMUŞATILMIŞ SANDBOX: 
-                // Sert duvarları kaldırıp, player'ın kendi kendini tetiklemesine, 
-                // video döngüsünü ve tıkınmadan akmasını sağlayan en esnek izinler:
+                // Doğrudan dokunmaya ve etkileşime izin veren en yumuşak, tıkınmayan yapı
                 secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-modals allow-pointer-lock");
                 
                 secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
