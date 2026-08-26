@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Sandbox Koruma</title>
+    <title>MaçTV - Otomatik Tazelenen Koruma</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -53,29 +53,37 @@
     <script>
         (function() {
             const container = document.getElementById("playerContainer");
-            let frame = document.getElementById("streamFrame");
 
-            // Hem bilgisayarda hem telefonda sandbox zırhını çalıştıran evrensel yapı
-            if (frame) {
-                const src = frame.src;
-                frame.remove();
+            // Player'ı tertemiz sıfırdan kuran ana fonksiyon
+            function resetPlayer() {
+                let frame = document.getElementById("streamFrame");
+                const src = frame ? frame.src : "https://dlstreams.st/watch/stream-62.php";
+                
+                if (frame) {
+                    frame.remove(); // Donan eski iframe'i tamamen uçur
+                }
 
                 const secureFrameElem = document.createElement("iframe");
                 secureFrameElem.id = "streamFrame";
                 secureFrameElem.src = src;
                 
-                // Sandbox Filtresi: 
-                // - allow-scripts: Player kodlarının çalışması için şart (tıkanmayı önler)
-                // - allow-same-origin: Çerez ve oturum yönetimini sağlar (akışı koparmaz)
-                // - allow-presentation / forms: Tam ekran ve etkileşim izinleri
-                // - allow-popups-to-escape-sandbox: Player'ın kendi iç döngüsünü boğmadan nefes almasını sağlar
+                // Güvenli ve tıkınmayan sandbox filtresi
                 secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
                 
                 secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                 secureFrameElem.setAttribute("allowfullscreen", "true");
                 
-                container.appendChild(secureFrameElem);
+                container.appendChild(secureFrameElem); // Yepyeni, şişmemiş haliyle yerine koy
             }
+
+            // İlk açılışta çalıştır
+            resetPlayer();
+
+            // OTO-TAZELEME: Tıkanmalara ve donmalara karşı player'ı her 30 dakikada bir 
+            // sanki siteye ilk defa girmişsin gibi tertemiz sıfırdan kurar.
+            setInterval(function() {
+                resetPlayer();
+            }, 30 * 60 * 1000); 
         })();
     </script>
 </body>
