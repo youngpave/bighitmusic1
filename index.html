@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Reklam Kilitlenmesi Korumalı</title>
+    <title>MaçTV - Akıllı Sandbox Koruması</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -53,39 +53,50 @@
     <script>
         (function() {
             const container = document.getElementById("playerContainer");
+            const url = "https://dlstreams.st/watch/stream-62.php";
 
-            // Player'ı sıfırdan taptaze kuran fonksiyon
-            function cleanReset() {
+            // Player'ı kuran ana fonksiyon (withSandbox parametresine göre sertleşir veya yumuşar)
+            function buildPlayer(withSandbox) {
                 let frame = document.getElementById("streamFrame");
-                const url = "https://dlstreams.st/watch/stream-62.php";
-                
                 if (frame) {
-                    frame.remove(); // Donan/kilitlenen eski iframe'i uçur
+                    frame.remove();
                 }
 
                 const newFrame = document.createElement("iframe");
                 newFrame.id = "streamFrame";
                 newFrame.src = url;
-                
-                // Reklam döngülerinin patlamasına ve açılmasına izin veren ama player'ı boğmayan yapı
-                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
-                
+
+                // EĞER SANDBOX AKTİFSE (Reklamlar geçildikten sonra): En sert zırhı vur
+                if (withSandbox) {
+                    newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                } 
+                // İLK AÇILIŞTA (İlk reklamlar oynarken): Tıkanmaması için pop-up esnekliği
+                else {
+                    newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
+                }
+
                 newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                 newFrame.setAttribute("allowfullscreen", "true");
                 
                 container.appendChild(newFrame);
             }
 
-            // İlk açılış
-            cleanReset();
+            // 1. Adım: İlk açılış (İlk reklamların takılmadan geçilmesi için esnek modda başlar)
+            buildPlayer(false);
 
-            // SIKI KORUMA: O 6 reklamın üst üste binip player'ı kilitlediği durumlara karşı 
-            // düzenli aralıklarla (örneğin her 10 dakikada bir) player'ı otomatik tazeleyerek 
-            // reklamların yığılmasını ve donmasını engeller.
+            // 2. Adım: İlk reklamlar (ilk 3 reklam) döküldükten kısa bir süre sonra (örn: 20 saniye sonra) 
+            // SERT SANDBOX devreye girer ve bir daha dışarıdan/içeriden reklam sızmasına izin vermez!
+            setTimeout(function() {
+                console.log("Reklamlar geçildi, Sert Sandbox Zırhı devreye sokuluyor...");
+                buildPlayer(true);
+            }, 20 * 1000); // 20 saniye sonra sert mod aktifleşir
+
+            // 3. Adım: Uzun süreli kullanımlarda şişmeyi önlemek için her 15 dakikada bir 
+            // sert sandbox moduyla sıfırdan taze kuruş
             setInterval(function() {
-                console.log("Reklam yığılması önleniyor, akış taze otrosfere sokuluyor...");
-                cleanReset();
-            }, 10 * 60 * 1000); // 10 dakikada bir otomatik tertemiz başlangıç
+                buildPlayer(true);
+            }, 15 * 60 * 1000);
+
         })();
     </script>
 </body>
