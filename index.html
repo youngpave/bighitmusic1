@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Koruma Modu</title>
+    <title>MaçTV - Canlı Yayın</title>
 
     <style>
         * {
@@ -20,6 +20,7 @@
         }
 
         .app-container {
+            position: relative;
             width: 100%;
             height: 100%;
             display: flex;
@@ -35,10 +36,10 @@
         }
 
         iframe {
-            display: block;
             width: 100%;
             height: 100%;
-            border: 0;
+            border: none;
+            display: block;
         }
     </style>
 </head>
@@ -61,6 +62,10 @@
 <script>
 (function () {
 
+    const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+        .test(navigator.userAgent);
+
     const container = document.getElementById("playerContainer");
     const oldFrame = document.getElementById("streamFrame");
 
@@ -69,45 +74,61 @@
     const src = oldFrame.src;
     oldFrame.remove();
 
-    const frame = document.createElement("iframe");
+    function createPlayer() {
 
-    frame.id = "streamFrame";
-    frame.src = src;
+        const frame = document.createElement("iframe");
+
+        frame.id = "streamFrame";
+        frame.src = src;
+
+        if (!isMobile) {
+
+            frame.setAttribute(
+                "sandbox",
+                "allow-scripts allow-same-origin allow-presentation allow-forms"
+            );
+
+        } else {
+
+            frame.setAttribute(
+                "sandbox",
+                "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
+            );
+
+        }
+
+        frame.setAttribute(
+            "allow",
+            "autoplay; fullscreen; encrypted-media; picture-in-picture"
+        );
+
+        frame.setAttribute("allowfullscreen", "true");
+
+        container.appendChild(frame);
+    }
+
+    createPlayer();
+
 
     /*
-     * Sandbox:
+     * 2 SAATTE BİR SADECE PLAYER'I YENİLE
      *
-     * allow-scripts
-     *      Yayının JavaScript'inin çalışmasına izin verir.
-     *
-     * allow-same-origin
-     *      Yayının kendi origin davranışını korur.
-     *
-     * allow-forms
-     *      Gerekli formların çalışmasına izin verir.
-     *
-     * allow-presentation
-     *      Tam ekran / sunum özelliklerini korur.
-     *
-     * allow-popups
-     *      Bilerek VERİLMİYOR.
-     *      Böylece iframe'in window.open() ile
-     *      yeni pencere açması engellenir.
+     * Ana sayfa yenilenmez.
+     * Sadece iframe yeniden oluşturulur.
      */
 
-    frame.setAttribute(
-        "sandbox",
-        "allow-scripts allow-same-origin allow-forms allow-presentation"
-    );
+    setInterval(function () {
 
-    frame.setAttribute(
-        "allow",
-        "autoplay; fullscreen; encrypted-media; picture-in-picture"
-    );
+        const currentFrame =
+            document.getElementById("streamFrame");
 
-    frame.setAttribute("allowfullscreen", "true");
+        if (!currentFrame) return;
 
-    container.appendChild(frame);
+        currentFrame.remove();
+
+        createPlayer();
+
+    }, 2 * 60 * 60 * 1000);
 
 })();
 </script>
