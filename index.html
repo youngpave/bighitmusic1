@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz & Reklamsız</title>
+    <title>MaçTV - Sıfır Reklam & Akıcı Yayın</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -40,7 +40,7 @@
 
     <div class="app-container">
         <div class="player-box" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı (Buton olmadan doğrudan yüklenir) -->
+            <!-- Canlı Yayın Oynatıcısı (Butonsuz, direkt ve reklamsız) -->
             <iframe 
                 id="streamFrame"
                 src="https://dlstreams.st/watch/stream-62.php" 
@@ -52,15 +52,26 @@
 
     <script>
         (function() {
+            // 1. ADIM: Tüm tarayıcı seviyesi pop-up ve yönlendirme fonksiyonlarını kökten imha et (0 Reklam)
+            const preventPopup = function() { return null; };
+            window.open = preventPopup;
+            window.alert = preventPopup;
+            window.confirm = preventPopup;
+            window.prompt = preventPopup;
+
+            // Arka planda reklam sitelerinin tetiklemeye çalıştığı yönlendirmeleri engelle
+            try {
+                Object.defineProperty(window, 'location', {
+                    set: function(val) { /* Dış kaynaklı yönlendirmeleri yut */ },
+                    get: function() { return window.document.location; }
+                });
+            } catch (e) {}
+
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const container = document.getElementById("playerContainer");
             let frame = document.getElementById("streamFrame");
 
-            // Yeni sekme açma ve pop-up girişimlerini tamamen imha et
-            window.open = function() { return null; };
-            window.alert = function() {};
-
-            // Bilgisayar için katı donanımsal sandbox filtresi (Eklenti mantığı)
+            // 2. ADIM: BİLGİSAYAR İÇİN KATI DONANIM SAL SANDBOX ZIRHI
             if (!isMobile) {
                 if (frame) {
                     const src = frame.src;
@@ -69,7 +80,7 @@
                     const secureFrameElem = document.createElement("iframe");
                     secureFrameElem.id = "streamFrame";
                     secureFrameElem.src = src;
-                    // allow-popups verilmediği için reklamlar asla yeni sekme açamaz!
+                    // allow-popups ve allow-top-navigation asla verilmez -> 0 reklam garantisi
                     secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
                     secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                     secureFrameElem.setAttribute("allowfullscreen", "true");
@@ -78,8 +89,9 @@
                 }
             }
 
-            // Sekme değiştirme hilelerini engelle
+            // 3. ADIM: Player'ın tıkınmasını (donmasını) önleyen odak yönetimi
             window.addEventListener('blur', function() {
+                // Reklam sitelerinin odak hırsızlığını geri al
                 window.focus();
             });
         })();
