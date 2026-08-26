@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Nöbetçi Korumalı</title>
+    <title>MaçTV - Akıllı Tazeleme Koruması</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -34,6 +34,24 @@
             height: 100%;
             border: none;
         }
+
+        /* Takılmalara karşı ekranın köşesine mini tazeleme butonu */
+        .refresh-btn {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 9999;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        .refresh-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -50,32 +68,30 @@
         </div>
     </div>
 
+    <!-- Takılma anında anında yayın akışını tazeleyen gizli/hafif buton -->
+    <button class="refresh-btn" onclick="reloadStream()">Yayın Takıldıysa Tıkla</button>
+
     <script>
-        (function() {
+        function reloadStream() {
             const container = document.getElementById("playerContainer");
             let frame = document.getElementById("streamFrame");
-
             if (frame) {
-                const src = frame.src;
-                frame.remove();
-
-                const secureFrameElem = document.createElement("iframe");
-                secureFrameElem.id = "streamFrame";
-                secureFrameElem.src = src;
+                const currentSrc = frame.src;
+                frame.remove(); // Eski donmuş iframe'i uçur
                 
-                // Sandbox zırhı (Player'ı tıkamayan, güvenli mod)
-                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
+                const newFrame = document.createElement("iframe");
+                newFrame.id = "streamFrame";
+                newFrame.src = currentSrc;
+                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
+                newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+                newFrame.setAttribute("allowfullscreen", "true");
                 
-                secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                secureFrameElem.setAttribute("allowfullscreen", "true");
-                
-                container.appendChild(secureFrameElem);
+                container.appendChild(newFrame);
             }
+        }
 
-            // NÖBETÇİ KORUMA: Aradan saatler geçse bile arka plandaki olası sızıntıları kontrol altında tutar
-            setInterval(function() {
-                // Ekstra güvenlik kontrol döngüsü
-            }, 3000);
+        (function() {
+            reloadStream(); // İlk açılışta güvenli sandbox ile kur
         })();
     </script>
 </body>
