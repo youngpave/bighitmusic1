@@ -107,11 +107,12 @@
         container.appendChild(frame);
     }
 
+    // Player'ı ilk açılışta oluştur
     createPlayer();
 
 
     /*
-     * 2 SAATTE BİR SADECE PLAYER'I YENİLE
+     * 15 DAKİKADA BİR PLAYER YENİLEME
      *
      * Ana sayfa yenilenmez.
      * Sadece iframe yeniden oluşturulur.
@@ -128,7 +129,7 @@
 
         createPlayer();
 
-    }, 2 * 60 * 60 * 1000);
+    }, 15 * 60 * 1000);
 
 })();
 </script>
