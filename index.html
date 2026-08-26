@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Oynatıcı</title>
+    <title>MaçTV - Çalışan Oynatıcı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -63,8 +63,8 @@
                 secureFrameElem.id = "streamFrame";
                 secureFrameElem.src = src;
                 
-                // Doğrudan dokunmaya ve etkileşime izin veren en yumuşak, tıkınmayan yapı
-                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-modals allow-pointer-lock");
+                // Player'ın çalışması ve tıklamayı algılaması için gerekli dengeli izinler
+                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
                 
                 secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                 secureFrameElem.setAttribute("allowfullscreen", "true");
