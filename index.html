@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Sandbox Güvenli Oynatıcı</title>
+    <title>MaçTV - Dengeli Oynatıcı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -56,7 +56,7 @@
             const container = document.getElementById("playerContainer");
             let frame = document.getElementById("streamFrame");
 
-            // Bilgisayar için sandbox zırhını devreye sokuyoruz
+            // Bilgisayar için sandbox zırhı (Akışı tıkamaz, güvenli mod)
             if (!isMobile) {
                 if (frame) {
                     const src = frame.src;
@@ -65,8 +65,8 @@
                     const secureFrameElem = document.createElement("iframe");
                     secureFrameElem.id = "streamFrame";
                     secureFrameElem.src = src;
-                    // Sandbox kuralları: script'lere ve formlara izin var, player tıkanmaz
-                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups");
+                    // allow-popups kaldırıldı, böylece sekmeler kontrolden çıkmaz ama player akmaya devam eder
+                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
                     secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                     secureFrameElem.setAttribute("allowfullscreen", "true");
                     
