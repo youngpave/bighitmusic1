@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - 3 Saniye Sonra Sert Sandbox</title>
+    <title>MaçTV - Kesintisiz Geçiş</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -40,10 +40,11 @@
 
     <div class="app-container">
         <div class="player-box" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı -->
+            <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda yüklenir) -->
             <iframe 
                 id="streamFrame"
                 src="https://dlstreams.st/watch/stream-62.php" 
+                sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
                 allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                 allowfullscreen="true">
             </iframe>
@@ -52,48 +53,16 @@
 
     <script>
         (function() {
-            const container = document.getElementById("playerContainer");
-            const url = "https://dlstreams.st/watch/stream-63.php";
-
-            // Player'ı oluşturan ana fonksiyon
-            function createPlayer(strictMode) {
-                let oldFrame = document.getElementById("streamFrame");
-                if (oldFrame) {
-                    oldFrame.remove();
-                }
-
-                const newFrame = document.createElement("iframe");
-                newFrame.id = "streamFrame";
-                newFrame.src = url;
-
-                if (strictMode) {
-                    // 🛡️ SERT SANDBOX (3. saniyeden sonra): Reklamları ve pop-up'ları tamamen sıfırlar
-                    newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                } else {
-                    // 🔓 ESNEK MOD (İlk 3 saniye için): Başlangıç izni
-                    newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
-                }
-
-                newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                newFrame.setAttribute("allowfullscreen", "true");
-                
-                container.appendChild(newFrame);
-            }
-
-            // 1. Adım: İlk açılış esnek modla başlar
-            createPlayer(false);
-
-            // 2. Adım: Tam 3 saniye sonra esnek mod sökülür, SERT SANDBOX devreye girer!
+            // Tam 3 saniye sonra oynatıcıya hiç dokunmadan, sayfayı yenilemeden 
+            // arka planda sert sandbox kuralını doğrudan çakıyoruz.
             setTimeout(function() {
-                console.log("3 saniye doldu, Sert Sandbox zırhı çakıldı!");
-                createPlayer(true);
+                const frame = document.getElementById("streamFrame");
+                if (frame) {
+                    // Sert sandbox: pop-up izinleri tamamen sökülür, reklamlar sıfırlanır
+                    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                    console.log("Sert Sandbox sessizce devreye girdi, akış bozulmadı!");
+                }
             }, 3 * 1000); // 3 saniye
-
-            // 3. Adım: Uzun süreli yayınlarda şişmeyi önlemek için her 15 dakikada bir sert modla taze başlangıç
-            setInterval(function() {
-                createPlayer(true);
-            }, 15 * 60 * 1000);
-
         })();
     </script>
 </body>
