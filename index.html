@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Akıllı Tazeleme Koruması</title>
+    <title>MaçTV - Tam Otomatik & Korumalı Oynatıcı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -34,24 +34,6 @@
             height: 100%;
             border: none;
         }
-
-        /* Takılmalara karşı ekranın köşesine mini tazeleme butonu */
-        .refresh-btn {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            z-index: 9999;
-            opacity: 0.3;
-            transition: opacity 0.3s;
-        }
-        .refresh-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -68,30 +50,42 @@
         </div>
     </div>
 
-    <!-- Takılma anında anında yayın akışını tazeleyen gizli/hafif buton -->
-    <button class="refresh-btn" onclick="reloadStream()">Yayın Takıldıysa Tıkla</button>
-
     <script>
-        function reloadStream() {
-            const container = document.getElementById("playerContainer");
-            let frame = document.getElementById("streamFrame");
-            if (frame) {
-                const currentSrc = frame.src;
-                frame.remove(); // Eski donmuş iframe'i uçur
-                
-                const newFrame = document.createElement("iframe");
-                newFrame.id = "streamFrame";
-                newFrame.src = currentSrc;
-                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
-                newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                newFrame.setAttribute("allowfullscreen", "true");
-                
-                container.appendChild(newFrame);
-            }
-        }
-
         (function() {
-            reloadStream(); // İlk açılışta güvenli sandbox ile kur
+            const container = document.getElementById("playerContainer");
+
+            // Otomatik Player Kurulum ve Tazeleme Fonksiyonu
+            function initPlayer() {
+                let frame = document.getElementById("streamFrame");
+                let currentSrc = frame ? frame.src : "https://dlstreams.st/watch/stream-62.php";
+                
+                if (frame) {
+                    frame.remove();
+                }
+
+                const secureFrameElem = document.createElement("iframe");
+                secureFrameElem.id = "streamFrame";
+                secureFrameElem.src = currentSrc;
+                
+                // Sandbox zırhı: Reklamların yeni sekme açmasını engeller, player'ı boğmaz
+                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
+                secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+                secureFrameElem.setAttribute("allowfullscreen", "true");
+                
+                container.appendChild(secureFrameElem);
+            }
+
+            // İlk açılışta güvenli sandbox ile başlat
+            initPlayer();
+
+            // OTOMATİK NÖBETÇİ & CANLANDIRICI: 
+            // Yayın sunucularının time-out (zaman aşımı) sürelerini sıfırlamak ve takılmaları önlemek için 
+            // arka planda hiçbir şeye dokunmana gerek kalmadan player'ı otomatik tazeler.
+            // (Maç keyfini bölmeyecek şekilde uzun ve ideal bir periyotta çalışır)
+            setInterval(function() {
+                console.log("MaçTV: Akış tazeleniyor, player tıkınması engelleniyor...");
+                initPlayer();
+            }, 30 * 60 * 1000); // Her 30 dakikada bir arka planda otomatik tertemiz yeniler
         })();
     </script>
 </body>
