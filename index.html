@@ -3,30 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Geçiş</title>
+    <title>MaçTV - Kırpılmış Özel Görünüm</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%;
             height: 100%;
             background: #000;
-            overflow: hidden;
+            overflow: hidden; /* Dışarı taşan her şeyi gizler, kırpma etkisini verir */
         }
 
         .app-container {
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #000;
+            overflow: hidden;
         }
 
-        .player-box {
-            position: relative;
+        /* 
+          KIRPMA VE ODAKLANMA ALANI:
+          İframe'i normal boyutundan daha büyük tutup yukarı kaydırarak 
+          üstteki beIN logosunu ve alttaki maç listelerini dışarıda (görünmez) bırakıyoruz.
+        */
+        .player-wrapper {
+            position: absolute;
+            top: -280px;  /* Üst kısmı (beIN ve üstü) yukarı kaydırarak kırpar */
+            left: 0;
             width: 100%;
-            height: 100%;
-            background: #000;
+            height: calc(100% + 450px); /* Kırpılan payı kurtarmak için yüksekliği artırıyoruz */
         }
 
         iframe {
@@ -39,8 +44,8 @@
 <body>
 
     <div class="app-container">
-        <div class="player-box" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda yüklenir) -->
+        <div class="player-wrapper" id="playerContainer">
+            <!-- Canlı Yayın Oynatıcısı -->
             <iframe 
                 id="streamFrame"
                 src="https://dlstreams.st/watch/stream-62.php" 
@@ -53,16 +58,14 @@
 
     <script>
         (function() {
-            // Tam 3 saniye sonra oynatıcıya hiç dokunmadan, sayfayı yenilemeden 
-            // arka planda sert sandbox kuralını doğrudan çakıyoruz.
+            // Daha önce kurduğumuz 3. saniye sert sandbox zırhı burada da devrede:
             setTimeout(function() {
                 const frame = document.getElementById("streamFrame");
                 if (frame) {
-                    // Sert sandbox: pop-up izinleri tamamen sökülür, reklamlar sıfırlanır
                     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("Sert Sandbox sessizce devreye girdi, akış bozulmadı!");
+                    console.log("Kırpılmış mod aktif, Sert Sandbox devrede!");
                 }
-            }, 3 * 1000); // 3 saniye
+            }, 3 * 1000);
         })();
     </script>
 </body>
