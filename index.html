@@ -3,44 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Geçiş</title>
+    <title>MaçTV - Canlı Yayın Hub</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        .app-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            padding: 20px;
         }
 
-        .player-box {
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-top: 10px;
+        }
+
+        /* Video Kapsayıcısı */
+        .video-wrapper {
             position: relative;
             width: 100%;
-            height: 100%;
-            background: #000;
+            padding-bottom: 56.25%; /* 16:9 Oranı */
+            background: #131825;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
-        iframe {
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            border: none;
+            border: 0;
+        }
+
+        /* Butonlar Alanı */
+        .buttons-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            padding-right: 5px;
+        }
+
+        /* Modern Kanal Butonları */
+        .lang-btn {
+            background: rgba(25, 32, 48, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #b0c4de;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .lang-btn:hover {
+            background: rgba(40, 52, 78, 0.9);
+            border-color: rgba(147, 112, 219, 0.5);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(147, 112, 219, 0.15);
+        }
+
+        /* Aktif / Seçili Buton Efekti */
+        .lang-btn.active {
+            background: linear-gradient(135deg, rgba(88, 28, 135, 0.4), rgba(49, 46, 129, 0.6));
+            border-color: #a855f7;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .lang-btn.active .btn-top {
+            color: #e2e8f0;
+        }
+
+        .btn-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="player-box" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda yüklenir) -->
+    <div class="container">
+        <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda yüklenir) -->
+        <div class="video-wrapper">
             <iframe 
                 id="streamFrame"
                 src="https://dlstreams.st/watch/stream-62.php" 
@@ -49,21 +126,59 @@
                 allowfullscreen="true">
             </iframe>
         </div>
+
+        <!-- 5 Kanal Butonları Izgarası -->
+        <div class="buttons-grid">
+            <button class="lang-btn active" onclick="changeStream('https://dlstreams.st/watch/stream-62.php', this)">
+                <span class="btn-top">KANAL 01</span><span class="btn-name">Stream 62</span>
+            </button>
+            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-63.php', this)">
+                <span class="btn-top">KANAL 02</span><span class="btn-name">Stream 63</span>
+            </button>
+            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-64.php', this)">
+                <span class="btn-top">KANAL 03</span><span class="btn-name">Stream 64</span>
+            </button>
+            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-67.php', this)">
+                <span class="btn-top">KANAL 04</span><span class="btn-name">Stream 67</span>
+            </button>
+            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-1010.php', this)">
+                <span class="btn-top">KANAL 05</span><span class="btn-name">Stream 1010</span>
+            </button>
+        </div>
     </div>
 
     <script>
+        // Kanal değiştirme fonksiyonu (Geçişte ilk açılış esnek moduyla başlar)
+        function changeStream(streamUrl, clickedButton) {
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            clickedButton.classList.add('active');
+
+            const frame = document.getElementById('streamFrame');
+            // Yeni kanala geçerken ilk açılışta reklamlar takılmasın diye esnek sandbox verilir
+            frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
+            frame.src = streamUrl;
+
+            // Her kanal değişiminden 3 saniye sonra da sert sandbox arkadan devreye girer
+            setTimeout(function() {
+                if (frame) {
+                    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                }
+            }, 3 * 1000);
+        }
+
+        // İlk sayfa açılışından 3 saniye sonra sert sandbox zırhının devreye girmesi
         (function() {
-            // Tam 3 saniye sonra oynatıcıya hiç dokunmadan, sayfayı yenilemeden 
-            // arka planda sert sandbox kuralını doğrudan çakıyoruz.
             setTimeout(function() {
                 const frame = document.getElementById("streamFrame");
                 if (frame) {
-                    // Sert sandbox: pop-up izinleri tamamen sökülür, reklamlar sıfırlanır
                     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("Sert Sandbox sessizce devreye girdi, akış bozulmadı!");
+                    console.log("Sert Sandbox sessizce devreye girdi!");
                 }
-            }, 3 * 1000); // 3 saniye
+            }, 3 * 1000);
         })();
     </script>
+
 </body>
 </html>
