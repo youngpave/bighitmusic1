@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesin Sandbox Hub</title>
+    <title>MaçTV - 5 Saniye Sandbox Hub</title>
     <style>
         * {
             box-sizing: border-box;
@@ -148,29 +148,26 @@
     </div>
 
     <script>
-        // Aktif oynatılan URL'yi takip etmek için değişken
         let currentUrl = "https://dlstreams.st/watch/stream-62.php";
 
-        // İframe'i istenen sandbox moduyla sıfırdan kuran ana fonksiyon
+        // İframe'i sandbox moduna göre oluşturan fonksiyon
         function rebuildPlayer(url, strictMode) {
             const container = document.getElementById("playerContainer");
             
-            // Eski iframe'i tamamen sök
             let oldFrame = document.getElementById("streamFrame");
             if (oldFrame) {
                 oldFrame.remove();
             }
 
-            // Yeni iframe üret
             const newFrame = document.createElement("iframe");
             newFrame.id = "streamFrame";
             newFrame.src = url;
 
             if (strictMode) {
-                // 🛡️ SERT SANDBOX (Reklamları sıfırlayan kilit mod)
+                // 🛡️ SERT SANDBOX (5 saniye sonra: Reklamları ve pop-up'ları tamamen engeller)
                 newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
             } else {
-                // 🔓 ESNEK MOD (İlk açılış / ilk 3 saniye için izinli mod)
+                // 🔓 ESNEK MOD (İlk 5 saniye için izinli mod)
                 newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
             }
 
@@ -180,7 +177,7 @@
             container.appendChild(newFrame);
         }
 
-        // Kanal değiştirme butonu
+        // Kanal değiştirme fonksiyonu
         function changeStream(streamUrl, clickedButton) {
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -189,20 +186,20 @@
 
             currentUrl = streamUrl;
 
-            // Kanala ilk tıklandığında esnek modla açılır (reklamlar takılmasın diye)
+            // Kanala tıklandığı an esnek modla başlar (İlk 5 saniye)
             rebuildPlayer(currentUrl, false);
 
-            // Tam 3 saniye sonra arkadan sert sandbox zırhı vurulur
+            // Tam 5 saniye sonra sert sandbox zırhı devreye girer
             setTimeout(function() {
                 rebuildPlayer(currentUrl, true);
-            }, 3 * 1000);
+            }, 5 * 1000); // 5 saniye
         }
 
-        // Sayfa ilk açıldığında 3 saniye sonra sert sandbox'ı devreye sokan tetikleyici
+        // Sayfa ilk açıldığında 5 saniye sonra sert sandbox'ı devreye sokan tetikleyici
         setTimeout(function() {
             rebuildPlayer(currentUrl, true);
-            console.log("Kesin Sert Sandbox devreye sokuldu!");
-        }, 3 * 1000);
+            console.log("5 saniye doldu, Sert Sandbox devrede!");
+        }, 5 * 1000); // 5 saniye
     </script>
 
 </body>
