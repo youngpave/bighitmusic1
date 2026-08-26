@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kırpılmış Özel Görünüm</title>
+    <title>MaçTV - Taraftarium Kırpılmış Görünüm</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%;
             height: 100%;
             background: #000;
-            overflow: hidden; /* Dışarı taşan her şeyi gizler, kırpma etkisini verir */
+            overflow: hidden; /* Dışarı taşan (kırpılan) kısımları tamamen gizler */
         }
 
         .app-container {
@@ -22,16 +22,15 @@
         }
 
         /* 
-          KIRPMA VE ODAKLANMA ALANI:
-          İframe'i normal boyutundan daha büyük tutup yukarı kaydırarak 
-          üstteki beIN logosunu ve alttaki maç listelerini dışarıda (görünmez) bırakıyoruz.
+          🎯 KIRPMA VE OTurtma ALANI:
+          Siteyi yukarı kaydırarak üstteki beIN logosunu, menüleri ve reklamları gizliyoruz.
         */
         .player-wrapper {
             position: absolute;
-            top: -280px;  /* Üst kısmı (beIN ve üstü) yukarı kaydırarak kırpar */
+            top: -240px;  /* Üst kısmı yukarı kaydırarak keser (gerekirse -220px veya -260px yapabilirsin) */
             left: 0;
             width: 100%;
-            height: calc(100% + 450px); /* Kırpılan payı kurtarmak için yüksekliği artırıyoruz */
+            height: calc(100% + 380px); /* Kırpılan payı alttan ve üstten dengeler */
         }
 
         iframe {
@@ -45,10 +44,10 @@
 
     <div class="app-container">
         <div class="player-wrapper" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı -->
+            <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda, ilk reklamlar takılmasın diye) -->
             <iframe 
                 id="streamFrame"
-                src="https://dlstreams.st/watch/stream-62.php" 
+                src="https://www.taraftarium201.top/" 
                 sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
                 allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                 allowfullscreen="true">
@@ -58,14 +57,15 @@
 
     <script>
         (function() {
-            // Daha önce kurduğumuz 3. saniye sert sandbox zırhı burada da devrede:
+            // Tam 3 saniye sonra oynatıcıya ve akışa hiç dokunmadan, sayfayı yenilemeden 
+            // arka planda sert sandbox zırhını devreye sokarak reklamları sıfırlıyoruz.
             setTimeout(function() {
                 const frame = document.getElementById("streamFrame");
                 if (frame) {
                     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("Kırpılmış mod aktif, Sert Sandbox devrede!");
+                    console.log("Taraftarium kırpıldı ve Sert Sandbox devrede!");
                 }
-            }, 3 * 1000);
+            }, 3 * 1000); // 3 saniye
         })();
     </script>
 </body>
