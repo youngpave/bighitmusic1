@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Mükemmel Kırpma</title>
+    <title>MaçTV - Maskelenmiş Kusursuz Görünüm</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%;
             height: 100%;
             background: #000;
-            overflow: hidden; /* Dışarı taşan kısımları tamamen gizler */
+            overflow: hidden;
         }
 
         .app-container {
@@ -21,38 +21,44 @@
             overflow: hidden;
         }
 
-        /* 
-          🎯 DÜZELTİLMİŞ KIRPMA ALANI:
-          Eğer beIN barı biraz aşağıda kalıyorsa top değerini -90px yapabilirsin.
-          Eğer üstten biraz fazla kesiyorsa -130px yapabilirsin.
-        */
-        .player-wrapper {
-            position: absolute;
-            top: -115px;  /* Üst kısmı tam beIN barının hemen üzerinden keser */
-            left: 0;
-            width: 100%;
-            height: calc(100% + 230px); /* Kırpılan payı dengeler */
-        }
-
+        /* İframe'i tam ekrana oturtuyoruz */
         iframe {
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        /* 
+          🎯 ÜST MASKE (PERDE):
+          Ekranın en tepesine siyah bir şerit çekerek sitenin kendi orijinal logosunu 
+          ve menüsünü kapatıyoruz. beIN barı bu perdenin hemen altında kusursuzca kalır.
+          İhtiyaca göre height değerini (örn: 60px veya 90px) ayarlayabilirsin.
+        */
+        .top-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 75px; /* Üst logoyu gizleyecek şerit yüksekliği */
+            background: #000;
+            z-index: 999; /* En üstte durmasını sağlar */
+            pointer-events: none; /* Tıklamalara engel olmaz, altındaki beIN okları çalışır */
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div class="player-wrapper" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı -->
-            <iframe 
-                id="streamFrame"
-                src="https://www.taraftarium201.top/" 
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                allowfullscreen="true">
-            </iframe>
-        </div>
+        <!-- Üstteki istenmeyen site logosunu ve menüyü gizleyen maske -->
+        <div class="top-mask"></div>
+
+        <!-- Canlı Yayın Oynatıcısı -->
+        <iframe 
+            id="streamFrame"
+            src="https://www.taraftarium201.top/" 
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            allowfullscreen="true">
+        </iframe>
     </div>
 
 </body>
