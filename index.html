@@ -3,16 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Canlı Yayın</title>
-
+    <title>MaçTV - Sandbox Koruma</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html {
             width: 100%;
             height: 100%;
             background: #000;
@@ -39,101 +33,50 @@
             width: 100%;
             height: 100%;
             border: none;
-            display: block;
         }
     </style>
 </head>
-
 <body>
 
-<div class="app-container">
-    <div class="player-box" id="playerContainer">
-
-        <iframe
-            id="streamFrame"
-            src="https://dlstreams.st/watch/stream-62.php"
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            allowfullscreen>
-        </iframe>
-
+    <div class="app-container">
+        <div class="player-box" id="playerContainer">
+            <!-- Canlı Yayın Oynatıcısı -->
+            <iframe 
+                id="streamFrame"
+                src="https://dlstreams.st/watch/stream-62.php" 
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allowfullscreen="true">
+            </iframe>
+        </div>
     </div>
-</div>
 
-<script>
-(function () {
+    <script>
+        (function() {
+            const container = document.getElementById("playerContainer");
+            let frame = document.getElementById("streamFrame");
 
-    const isMobile =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
-        .test(navigator.userAgent);
+            // Hem bilgisayarda hem telefonda sandbox zırhını çalıştıran evrensel yapı
+            if (frame) {
+                const src = frame.src;
+                frame.remove();
 
-    const container = document.getElementById("playerContainer");
-    const oldFrame = document.getElementById("streamFrame");
-
-    if (!oldFrame) return;
-
-    const src = oldFrame.src;
-
-    oldFrame.remove();
-
-    function createPlayer() {
-
-        const frame = document.createElement("iframe");
-
-        frame.id = "streamFrame";
-        frame.src = src;
-
-        if (!isMobile) {
-
-            frame.setAttribute(
-                "sandbox",
-                "allow-scripts allow-same-origin allow-presentation allow-forms"
-            );
-
-        } else {
-
-            frame.setAttribute(
-                "sandbox",
-                "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
-            );
-
-        }
-
-        frame.setAttribute(
-            "allow",
-            "autoplay; fullscreen; encrypted-media; picture-in-picture"
-        );
-
-        frame.setAttribute("allowfullscreen", "true");
-
-        container.appendChild(frame);
-    }
-
-    // İlk player
-    createPlayer();
-
-
-    /*
-     * 3 DAKİKADA BİR PLAYER YENİLEME
-     *
-     * Ana sayfa yenilenmez.
-     * Sadece iframe yeniden oluşturulur.
-     */
-
-    setInterval(function () {
-
-        const currentFrame =
-            document.getElementById("streamFrame");
-
-        if (!currentFrame) return;
-
-        currentFrame.remove();
-
-        createPlayer();
-
-    }, 3 * 60 * 1000);
-
-})();
-</script>
-
+                const secureFrameElem = document.createElement("iframe");
+                secureFrameElem.id = "streamFrame";
+                secureFrameElem.src = src;
+                
+                // Sandbox Filtresi: 
+                // - allow-scripts: Player kodlarının çalışması için şart (tıkanmayı önler)
+                // - allow-same-origin: Çerez ve oturum yönetimini sağlar (akışı koparmaz)
+                // - allow-presentation / forms: Tam ekran ve etkileşim izinleri
+                // - allow-popups-to-escape-sandbox: Player'ın kendi iç döngüsünü boğmadan nefes almasını sağlar
+                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
+                
+                secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+                secureFrameElem.setAttribute("allowfullscreen", "true");
+                
+                container.appendChild(secureFrameElem);
+            }
+        })();
+    </script>
 </body>
 </html>
