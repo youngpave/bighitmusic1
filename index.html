@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Sert Koruma Modu</title>
+    <title>MaçTV - Koruma Modu</title>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
             width: 100%;
             height: 100%;
             background: #000;
@@ -14,7 +20,6 @@
         }
 
         .app-container {
-            position: relative;
             width: 100%;
             height: 100%;
             display: flex;
@@ -30,54 +35,82 @@
         }
 
         iframe {
+            display: block;
             width: 100%;
             height: 100%;
-            border: none;
+            border: 0;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="app-container">
-        <div class="player-box" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı -->
-            <iframe 
-                id="streamFrame"
-                src="https://dlstreams.st/watch/stream-62.php" 
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                allowfullscreen="true">
-            </iframe>
-        </div>
+<div class="app-container">
+    <div class="player-box" id="playerContainer">
+
+        <iframe
+            id="streamFrame"
+            src="https://dlstreams.st/watch/stream-62.php"
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+
     </div>
+</div>
 
-    <script>
-        (function() {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const container = document.getElementById("playerContainer");
-            let frame = document.getElementById("streamFrame");
+<script>
+(function () {
 
-            if (frame) {
-                const src = frame.src;
-                frame.remove();
+    const container = document.getElementById("playerContainer");
+    const oldFrame = document.getElementById("streamFrame");
 
-                const secureFrameElem = document.createElement("iframe");
-                secureFrameElem.id = "streamFrame";
-                secureFrameElem.src = src;
+    if (!oldFrame) return;
 
-                if (!isMobile) {
-                    // 🖥️ BİLGİSAYAR İÇİN: En sert sandbox duvarı (Asla açık vermez)
-                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                } else {
-                    // 📱 TELEFON İÇİN: İlk tıklamanın çalışması ve sadece 1 reklamın çıkmasına izin veren sert yapı
-                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
-                }
-                
-                secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                secureFrameElem.setAttribute("allowfullscreen", "true");
-                
-                container.appendChild(secureFrameElem);
-            }
-        })();
-    </script>
+    const src = oldFrame.src;
+    oldFrame.remove();
+
+    const frame = document.createElement("iframe");
+
+    frame.id = "streamFrame";
+    frame.src = src;
+
+    /*
+     * Sandbox:
+     *
+     * allow-scripts
+     *      Yayının JavaScript'inin çalışmasına izin verir.
+     *
+     * allow-same-origin
+     *      Yayının kendi origin davranışını korur.
+     *
+     * allow-forms
+     *      Gerekli formların çalışmasına izin verir.
+     *
+     * allow-presentation
+     *      Tam ekran / sunum özelliklerini korur.
+     *
+     * allow-popups
+     *      Bilerek VERİLMİYOR.
+     *      Böylece iframe'in window.open() ile
+     *      yeni pencere açması engellenir.
+     */
+
+    frame.setAttribute(
+        "sandbox",
+        "allow-scripts allow-same-origin allow-forms allow-presentation"
+    );
+
+    frame.setAttribute(
+        "allow",
+        "autoplay; fullscreen; encrypted-media; picture-in-picture"
+    );
+
+    frame.setAttribute("allowfullscreen", "true");
+
+    container.appendChild(frame);
+
+})();
+</script>
+
 </body>
 </html>
