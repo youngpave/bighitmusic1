@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Taraftarium Kırpılmış Görünüm</title>
+    <title>MaçTV - beIN Barı Dahil Kırpılmış Görünüm</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%;
             height: 100%;
             background: #000;
-            overflow: hidden; /* Dışarı taşan (kırpılan) kısımları tamamen gizler */
+            overflow: hidden; /* Taşan kısımları gizler */
         }
 
         .app-container {
@@ -22,15 +22,15 @@
         }
 
         /* 
-          🎯 KIRPMA VE OTurtma ALANI:
-          Siteyi yukarı kaydırarak üstteki beIN logosunu, menüleri ve reklamları gizliyoruz.
+          🎯 BEYİN / KANAL BARINDAN BAŞLAYAN KIRPMA:
+          top değerini küçülttük ki üstteki menü gitsin ama beIN 1 barı ve reklamlar tam tepede görünsün.
         */
         .player-wrapper {
             position: absolute;
-            top: -240px;  /* Üst kısmı yukarı kaydırarak keser (gerekirse -220px veya -260px yapabilirsin) */
+            top: -110px;  /* Sadece en üstteki site logosunu ve menüyü keser, beIN barını korur */
             left: 0;
             width: 100%;
-            height: calc(100% + 380px); /* Kırpılan payı alttan ve üstten dengeler */
+            height: calc(100% + 220px); 
         }
 
         iframe {
@@ -44,7 +44,7 @@
 
     <div class="app-container">
         <div class="player-wrapper" id="playerContainer">
-            <!-- Canlı Yayın Oynatıcısı (Başlangıçta esnek modda, ilk reklamlar takılmasın diye) -->
+            <!-- Canlı Yayın Oynatıcısı -->
             <iframe 
                 id="streamFrame"
                 src="https://www.taraftarium201.top/" 
@@ -57,13 +57,12 @@
 
     <script>
         (function() {
-            // Tam 3 saniye sonra oynatıcıya ve akışa hiç dokunmadan, sayfayı yenilemeden 
-            // arka planda sert sandbox zırhını devreye sokarak reklamları sıfırlıyoruz.
+            // Tam 3 saniye sonra akışı bozmadan sert sandbox zırhını devreye sokan güvenli yapı
             setTimeout(function() {
                 const frame = document.getElementById("streamFrame");
                 if (frame) {
                     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("Taraftarium kırpıldı ve Sert Sandbox devrede!");
+                    console.log("beIN barı korumalı kırpma aktif, Sert Sandbox devrede!");
                 }
             }, 3 * 1000); // 3 saniye
         })();
