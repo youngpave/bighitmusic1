@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Tam Otomatik & Korumalı Oynatıcı</title>
+    <title>MaçTV - Yumuşak ve Kesintisiz Oynatıcı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -53,39 +53,26 @@
     <script>
         (function() {
             const container = document.getElementById("playerContainer");
+            let frame = document.getElementById("streamFrame");
 
-            // Otomatik Player Kurulum ve Tazeleme Fonksiyonu
-            function initPlayer() {
-                let frame = document.getElementById("streamFrame");
-                let currentSrc = frame ? frame.src : "https://dlstreams.st/watch/stream-62.php";
-                
-                if (frame) {
-                    frame.remove();
-                }
+            if (frame) {
+                const src = frame.src;
+                frame.remove();
 
                 const secureFrameElem = document.createElement("iframe");
                 secureFrameElem.id = "streamFrame";
-                secureFrameElem.src = currentSrc;
+                secureFrameElem.src = src;
                 
-                // Sandbox zırhı: Reklamların yeni sekme açmasını engeller, player'ı boğmaz
-                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
+                // YUMUŞATILMIŞ SANDBOX: 
+                // Sert duvarları kaldırıp, player'ın kendi kendini tetiklemesine, 
+                // video döngüsünü ve tıkınmadan akmasını sağlayan en esnek izinler:
+                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-modals allow-pointer-lock");
+                
                 secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                 secureFrameElem.setAttribute("allowfullscreen", "true");
                 
                 container.appendChild(secureFrameElem);
             }
-
-            // İlk açılışta güvenli sandbox ile başlat
-            initPlayer();
-
-            // OTOMATİK NÖBETÇİ & CANLANDIRICI: 
-            // Yayın sunucularının time-out (zaman aşımı) sürelerini sıfırlamak ve takılmaları önlemek için 
-            // arka planda hiçbir şeye dokunmana gerek kalmadan player'ı otomatik tazeler.
-            // (Maç keyfini bölmeyecek şekilde uzun ve ideal bir periyotta çalışır)
-            setInterval(function() {
-                console.log("MaçTV: Akış tazeleniyor, player tıkınması engelleniyor...");
-                initPlayer();
-            }, 30 * 60 * 1000); // Her 30 dakikada bir arka planda otomatik tertemiz yeniler
         })();
     </script>
 </body>
