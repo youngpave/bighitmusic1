@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesin Sandbox Koruması</title>
+    <title>MaçTV - 3 Saniye Sonra Sert Sandbox</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -55,24 +55,22 @@
             const container = document.getElementById("playerContainer");
             const url = "https://dlstreams.st/watch/stream-62.php";
 
-            // Player'ı doğrudan istenen sandbox moduyla sıfırdan yaratan fonksiyon
+            // Player'ı oluşturan ana fonksiyon
             function createPlayer(strictMode) {
-                // Önce eskisini tamamen yok et
                 let oldFrame = document.getElementById("streamFrame");
                 if (oldFrame) {
                     oldFrame.remove();
                 }
 
-                // Yepyeni iframe üret
                 const newFrame = document.createElement("iframe");
                 newFrame.id = "streamFrame";
                 newFrame.src = url;
 
                 if (strictMode) {
-                    // 🛡️ SERT SANDBOX (3 reklamdan sonra): Reklamları ve pop-up'ları tamamen sıfırlar
+                    // 🛡️ SERT SANDBOX (3. saniyeden sonra): Reklamları ve pop-up'ları tamamen sıfırlar
                     newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
                 } else {
-                    // 🔓 ESNEK MOD (İlk 3 reklam için): Tıkanmayı önleyen geçici mod
+                    // 🔓 ESNEK MOD (İlk 3 saniye için): Başlangıç izni
                     newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
                 }
 
@@ -82,18 +80,16 @@
                 container.appendChild(newFrame);
             }
 
-            // 1. Adım: İlk açılışta ilk 3 reklamın takılmadan geçilmesi için esnek mod
+            // 1. Adım: İlk açılış esnek modla başlar
             createPlayer(false);
 
-            // 2. Adım: İlk 3 reklamın bitiş süresi (18 saniye) dolduğu an, 
-            // eski iframe tamamen sökülür ve yerine SERT SANDBOX'lı yeni iframe dikilir!
+            // 2. Adım: Tam 3 saniye sonra esnek mod sökülür, SERT SANDBOX devreye girer!
             setTimeout(function() {
-                console.log("3 reklam atlatıldı, Sert Sandbox zırhı fişeklendi!");
+                console.log("3 saniye doldu, Sert Sandbox zırhı çakıldı!");
                 createPlayer(true);
-            }, 18 * 1000); // 18 saniye sonra sert mod
+            }, 3 * 1000); // 3 saniye
 
-            // 3. Adım: Uzun süreli kullanımlarda şişmeyi önlemek için her 15 dakikada bir 
-            // sert modla taze başlangıç
+            // 3. Adım: Uzun süreli yayınlarda şişmeyi önlemek için her 15 dakikada bir sert modla taze başlangıç
             setInterval(function() {
                 createPlayer(true);
             }, 15 * 60 * 1000);
