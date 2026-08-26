@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Çalışan Oynatıcı</title>
+    <title>MaçTV - Sert Koruma Modu</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -52,6 +52,7 @@
 
     <script>
         (function() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const container = document.getElementById("playerContainer");
             let frame = document.getElementById("streamFrame");
 
@@ -62,9 +63,14 @@
                 const secureFrameElem = document.createElement("iframe");
                 secureFrameElem.id = "streamFrame";
                 secureFrameElem.src = src;
-                
-                // Player'ın çalışması ve tıklamayı algılaması için gerekli dengeli izinler
-                secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
+
+                if (!isMobile) {
+                    // 🖥️ BİLGİSAYAR İÇİN: En sert sandbox duvarı (Asla açık vermez)
+                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                } else {
+                    // 📱 TELEFON İÇİN: İlk tıklamanın çalışması ve sadece 1 reklamın çıkmasına izin veren sert yapı
+                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
+                }
                 
                 secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                 secureFrameElem.setAttribute("allowfullscreen", "true");
