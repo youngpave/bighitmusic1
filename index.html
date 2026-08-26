@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Akıllı Sandbox Koruması</title>
+    <title>MaçTV - 3 Reklam Sonrası Sert Sandbox</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -55,8 +55,8 @@
             const container = document.getElementById("playerContainer");
             const url = "https://dlstreams.st/watch/stream-62.php";
 
-            // Player'ı kuran ana fonksiyon (withSandbox parametresine göre sertleşir veya yumuşar)
-            function buildPlayer(withSandbox) {
+            // Player'ı oluşturan ana yapı
+            function buildPlayer(isStrictMode) {
                 let frame = document.getElementById("streamFrame");
                 if (frame) {
                     frame.remove();
@@ -66,12 +66,11 @@
                 newFrame.id = "streamFrame";
                 newFrame.src = url;
 
-                // EĞER SANDBOX AKTİFSE (Reklamlar geçildikten sonra): En sert zırhı vur
-                if (withSandbox) {
+                if (isStrictMode) {
+                    // 🛡️ 3 REKLAMDAN SONRA: En sert sandbox (Reklamları tamamen sıfıra indirir, yeni sekme/pop-up açtırmaz)
                     newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                } 
-                // İLK AÇILIŞTA (İlk reklamlar oynarken): Tıkanmaması için pop-up esnekliği
-                else {
+                } else {
+                    // 🔓 İLK AÇILIŞ (İlk 3 reklam): Player'ın kilitlenmemesi için geçici esnek mod
                     newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
                 }
 
@@ -81,18 +80,18 @@
                 container.appendChild(newFrame);
             }
 
-            // 1. Adım: İlk açılış (İlk reklamların takılmadan geçilmesi için esnek modda başlar)
+            // 1. Adım: İlk açılışta ilk 3 reklamın sorunsuz dökülmesi için esnek modla başla
             buildPlayer(false);
 
-            // 2. Adım: İlk reklamlar (ilk 3 reklam) döküldükten kısa bir süre sonra (örn: 20 saniye sonra) 
-            // SERT SANDBOX devreye girer ve bir daha dışarıdan/içeriden reklam sızmasına izin vermez!
+            // 2. Adım: İlk 3 reklamın oynaması için gereken süre (yaklaşık 18 saniye) bittiği an 
+            // sert sandbox devreye girer ve reklamları tamamen sıfırlar!
             setTimeout(function() {
-                console.log("Reklamlar geçildi, Sert Sandbox Zırhı devreye sokuluyor...");
+                console.log("İlk 3 reklam atlatıldı, Sert Sandbox devreye giriyor, reklamlar sıfırlanıyor...");
                 buildPlayer(true);
-            }, 20 * 1000); // 20 saniye sonra sert mod aktifleşir
+            }, 18 * 1000); // 18 saniye sonra sert kilit aktifleşir
 
-            // 3. Adım: Uzun süreli kullanımlarda şişmeyi önlemek için her 15 dakikada bir 
-            // sert sandbox moduyla sıfırdan taze kuruş
+            // 3. Adım: Uzun süreli yayınlarda olası şişmelere karşı her 15 dakikada bir 
+            // yine sert sandbox moduyla sıfırdan taze başlangıç
             setInterval(function() {
                 buildPlayer(true);
             }, 15 * 60 * 1000);
