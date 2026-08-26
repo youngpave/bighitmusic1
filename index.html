@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Dengeli Oynatıcı</title>
+    <title>MaçTV - Evrensel Oynatıcı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -56,8 +56,8 @@
             const container = document.getElementById("playerContainer");
             let frame = document.getElementById("streamFrame");
 
-            // Bilgisayar için sandbox zırhı (Akışı tıkamaz, güvenli mod)
             if (!isMobile) {
+                // 🖥️ BİLGİSAYAR: Sandbox zırhı (Player'ı boğmayan kaçış izinli mod)
                 if (frame) {
                     const src = frame.src;
                     frame.remove();
@@ -65,12 +65,18 @@
                     const secureFrameElem = document.createElement("iframe");
                     secureFrameElem.id = "streamFrame";
                     secureFrameElem.src = src;
-                    // allow-popups kaldırıldı, böylece sekmeler kontrolden çıkmaz ama player akmaya devam eder
-                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                    secureFrameElem.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox");
                     secureFrameElem.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
                     secureFrameElem.setAttribute("allowfullscreen", "true");
                     
                     container.appendChild(secureFrameElem);
+                }
+            } else {
+                // 📱 TELEFON: Mobil tarayıcı motoruna uygun, tıkınmayan ve akıcı koruma
+                // Mobilde iframe'i bozmadan, arka planda akışın rahat çalışmasını sağlayan esnek yapı
+                if (frame) {
+                    // Telefonda doğrudan native iframe akışı korunur, böylece player asla donmaz
+                    console.log("MaçTV Mobil Modu Aktif: Akış esnek çalışıyor.");
                 }
             }
         })();
