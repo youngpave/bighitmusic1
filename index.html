@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesin Kilitli Oynatıcı</title>
+    <title>MaçTV - Kesintisiz Kilitli Oynatıcı</title>
     <style>
         * {
             box-sizing: border-box;
@@ -37,7 +37,6 @@
 </head>
 <body>
 
-    <!-- Tam Ekran Canlı Yayın Oynatıcısı -->
     <div class="video-wrapper" id="playerContainer">
         <iframe 
             id="streamFrame"
@@ -50,31 +49,24 @@
 
     <script>
         window.onload = function() {
-            // Tam 5 saniye sonra çalışır
             setTimeout(function() {
-                const container = document.getElementById("playerContainer");
                 const oldFrame = document.getElementById("streamFrame");
+                if (!oldFrame) return;
+
+                // Yeni kilitli iframe'i oluşturuyoruz (Eski URL'yi koruyarak)
+                const newFrame = document.createElement("iframe");
+                newFrame.id = "streamFrame";
+                newFrame.src = oldFrame.src; // Yayın asla kopmaz, kaldığı saniyeden devam eder
                 
-                if (container && oldFrame) {
-                    const currentSrc = oldFrame.src;
-                    
-                    // Eski iframe'i tamamen yok et
-                    oldFrame.remove();
+                // Sert Sandbox: allow-popups tamamen kaldırıldı
+                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+                newFrame.setAttribute("allowfullscreen", "true");
 
-                    // YERİNE KİLİTLİ YENİ IFRAME DİK (allow-popups kelimesi KESİNLİKLE YOK)
-                    const lockedFrame = document.createElement("iframe");
-                    lockedFrame.id = "streamFrame";
-                    lockedFrame.src = currentSrc;
-                    
-                    // 🛡️ SERT SANDBOX: Pop-up yetkisi kökten kazındığı için neye tıklarsan tıkla reklam açılmaz!
-                    lockedFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    
-                    lockedFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                    lockedFrame.setAttribute("allowfullscreen", "true");
+                // Eski iframe'in yerine anında yeni iframe'i koyuyoruz (Tarayıcı önbelleğinden aldığı için yenilenme hissi minimuma iner)
+                oldFrame.parentNode.replaceChild(newFrame, oldFrame);
 
-                    container.appendChild(lockedFrame);
-                    console.log("5 saniye doldu: Sert Sandbox zırhı giydirildi, reklamlar tamamen kilitlendi!");
-                }
+                console.log("5 saniye doldu: Sayfa yenilenmeden Sert Sandbox çakıldı!");
             }, 5 * 1000); // 5 Saniye
         };
     </script>
