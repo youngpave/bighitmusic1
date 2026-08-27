@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Kilitli Oynatıcı</title>
+    <title>MaçTV - Kesintisiz Kalkanlı Oynatıcı</title>
     <style>
         * {
             box-sizing: border-box;
@@ -33,40 +33,49 @@
             height: 100%;
             border: 0;
         }
+
+        /* 
+          🛡️ REKLAM KALKANI (OVERLAY):
+          İlk 5 saniye devre dışıdır (gizlidir). 
+          5 saniye dolduğun an oynatıcının üzerine inerek arkadan pop-up açılmasını tetikleyecek 
+          tüm dış tıklama ve yönlendirmeleri tamamen engeller.
+        */
+        #adShield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: transparent;
+            display: none; /* İlk 5 saniye kapalı, yayın rahatça açılır */
+        }
     </style>
 </head>
 <body>
 
     <div class="video-wrapper" id="playerContainer">
+        <!-- Reklamları engelleyen şeffaf kalkan -->
+        <div id="adShield"></div>
+
         <iframe 
             id="streamFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
-            sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowfullscreen="true">
         </iframe>
     </div>
 
     <script>
+        // Sayfa açıldıktan tam 5 saniye sonra, akışı hiç bozmadan, 
+        // ekranı yenilemeden reklam kalkanını sessizce aktif ediyoruz.
         window.onload = function() {
             setTimeout(function() {
-                const oldFrame = document.getElementById("streamFrame");
-                if (!oldFrame) return;
-
-                // Yeni kilitli iframe'i oluşturuyoruz (Eski URL'yi koruyarak)
-                const newFrame = document.createElement("iframe");
-                newFrame.id = "streamFrame";
-                newFrame.src = oldFrame.src; // Yayın asla kopmaz, kaldığı saniyeden devam eder
-                
-                // Sert Sandbox: allow-popups tamamen kaldırıldı
-                newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                newFrame.setAttribute("allowfullscreen", "true");
-
-                // Eski iframe'in yerine anında yeni iframe'i koyuyoruz (Tarayıcı önbelleğinden aldığı için yenilenme hissi minimuma iner)
-                oldFrame.parentNode.replaceChild(newFrame, oldFrame);
-
-                console.log("5 saniye doldu: Sayfa yenilenmeden Sert Sandbox çakıldı!");
+                const shield = document.getElementById("adShield");
+                if (shield) {
+                    shield.style.display = "block"; // Kalkan örtülür
+                    console.log("5 saniye doldu: Reklam kalkanı devrede, yenilenme yok!");
+                }
             }, 5 * 1000); // 5 Saniye
         };
     </script>
