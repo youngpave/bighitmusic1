@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kusursuz Mobil Oynatıcı</title>
+    <title>MaçTV - Kesintisiz Mobil Oynatıcı</title>
     <style>
         * {
             box-sizing: border-box;
@@ -35,11 +35,12 @@
         }
 
         /* 
-          📱 MOBİL REKLAM KALKANI:
-          Başlangıçta tamamen etkisizdir (pointer-events: none), yani videoyu rahatça oynatabilirsin.
-          Süre dolunca aktifleşir ama sadece reklam tetikleyen boşlukları kapatır.
+          🛡️ Şeffaf Reklam Engelleyici Kalkan:
+          İlk 6 saniye (2 reklam süresi boyunca) kapalıdır, yayın ve player rahatça açılır.
+          Süre dolduktan sonra aktifleşerek arkadan reklam/pop-up açılmasını tetikleyecek 
+          tüm dış tıklamaları tamamen engeller.
         */
-        #mobileShield {
+        #adBlockShield {
             position: absolute;
             top: 0;
             left: 0;
@@ -47,18 +48,20 @@
             height: 100%;
             z-index: 9999;
             background: transparent;
-            pointer-events: none; /* İlk başta tıklamaları doğrudan alta (videoya) geçirir */
+            display: none; /* Başlangıçta gizli */
         }
     </style>
 </head>
 <body>
 
-    <div class="video-wrapper" id="playerContainer">
-        <div id="mobileShield"></div>
+    <div class="video-wrapper">
+        <!-- Reklam Kalkanı -->
+        <div id="adBlockShield"></div>
+
+        <!-- Sandbox'sız, tamamen saf ve özgür oynatıcı -->
         <iframe 
             id="streamFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
-            sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowfullscreen="true">
         </iframe>
@@ -66,14 +69,12 @@
 
     <script>
         window.onload = function() {
-            // İlk 6 saniye (2 reklam süresi) yayın rahatça yüklenir ve açılır.
+            // İlk 6 saniye (yaklaşık 2 reklam süresi) boyunca hiçbir şeye dokunulmaz, yayın sorunsuz başlar.
             setTimeout(function() {
-                const shield = document.getElementById("mobileShield");
+                const shield = document.getElementById("adBlockShield");
                 if (shield) {
-                    // Süre dolunca kalkan katılaşır ve arka planda yeni sekme açılmasını tetikleyecek 
-                    // tüm sahte tıklama girişimlerini bloke eder.
-                    shield.style.pointerEvents = "auto";
-                    console.log("Mobil reklam kalkanı kilitlendi, tıkanma yok!");
+                    shield.style.display = "block"; // Kalkan örtülür
+                    console.log("2 reklam süresi doldu: Kalkan aktif, artık reklam çıkmaz!");
                 }
             }, 6 * 1000); // 6 Saniye
         };
