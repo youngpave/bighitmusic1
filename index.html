@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz 5 Sn Sandbox Hub</title>
+    <title>MaçTV - Tekli Oynatıcı</title>
     <style>
         * {
             box-sizing: border-box;
@@ -19,6 +19,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             padding: 20px;
         }
 
@@ -28,8 +29,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 25px;
-            margin-top: 10px;
         }
 
         /* Video Kapsayıcısı */
@@ -52,71 +51,12 @@
             height: 100%;
             border: 0;
         }
-
-        /* Butonlar Alanı */
-        .buttons-grid {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-            padding-right: 5px;
-        }
-
-        /* Modern Kanal Butonları */
-        .lang-btn {
-            background: rgba(25, 32, 48, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: #b0c4de;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            transition: all 0.2s ease;
-            text-align: left;
-        }
-
-        .lang-btn:hover {
-            background: rgba(40, 52, 78, 0.9);
-            border-color: rgba(147, 112, 219, 0.5);
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(147, 112, 219, 0.15);
-        }
-
-        /* Aktif / Seçili Buton Efekti */
-        .lang-btn.active {
-            background: linear-gradient(135deg, rgba(88, 28, 135, 0.4), rgba(49, 46, 129, 0.6));
-            border-color: #a855f7;
-            color: #ffffff;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
-        }
-
-        .btn-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-
-        .lang-btn.active .btn-top {
-            color: #e2e8f0;
-        }
-
-        .btn-name {
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Canlı Yayın Oynatıcısı (İlk açılışta esnek mod ile başlar) -->
+        <!-- Canlı Yayın Oynatıcısı (İlk 5 saniye esnek mod, sonrasında sert sandbox) -->
         <div class="video-wrapper">
             <iframe 
                 id="streamFrame"
@@ -126,65 +66,18 @@
                 allowfullscreen="true">
             </iframe>
         </div>
-
-        <!-- 5 Kanal Butonları Izgarası -->
-        <div class="buttons-grid">
-            <button class="lang-btn active" onclick="changeStream('https://dlstreams.st/watch/stream-62.php', this)">
-                <span class="btn-top">KANAL 01</span><span class="btn-name">Stream 62</span>
-            </button>
-            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-63.php', this)">
-                <span class="btn-top">KANAL 02</span><span class="btn-name">Stream 63</span>
-            </button>
-            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-64.php', this)">
-                <span class="btn-top">KANAL 03</span><span class="btn-name">Stream 64</span>
-            </button>
-            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-67.php', this)">
-                <span class="btn-top">KANAL 04</span><span class="btn-name">Stream 67</span>
-            </button>
-            <button class="lang-btn" onclick="changeStream('https://dlstreams.st/watch/stream-1010.php', this)">
-                <span class="btn-top">KANAL 05</span><span class="btn-name">Stream 1010</span>
-            </button>
-        </div>
     </div>
 
     <script>
-        // Zamanlayıcıları takip etmek için değişken
-        let sandboxTimer = null;
-
-        // Kanal değiştirme fonksiyonu (Sayfayı yenilemeden URL ve esnek mod değiştirir)
-        function changeStream(streamUrl, clickedButton) {
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            clickedButton.classList.add('active');
-
-            const frame = document.getElementById('streamFrame');
-            
-            // Önceki zamanlayıcıyı iptal et
-            if (sandboxTimer) clearTimeout(sandboxTimer);
-
-            // Kanala tıklandığı an önce esnek mod verilir ve kaynak yüklenir (Yenilenme olmaz, akış sürer)
-            frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-presentation allow-forms");
-            frame.src = streamUrl;
-
-            // Tam 5 saniye sonra arkadan hiçbir şey hissettirmeden sert sandbox kuralı çakılır
-            sandboxTimer = setTimeout(function() {
-                if (frame) {
-                    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("5 saniye doldu, kesintisiz Sert Sandbox aktif!");
-                }
-            }, 5 * 1000);
-        }
-
-        // Sayfa ilk açıldığında 5 saniye sonra sert sandbox'ı sessizce devreye sokan tetikleyici
+        // Sayfa açıldıktan tam 5 saniye sonra akışı bozmadan sert sandbox zırhını devreye sokar
         window.onload = function() {
-            sandboxTimer = setTimeout(function() {
+            setTimeout(function() {
                 const frame = document.getElementById("streamFrame");
                 if (frame) {
                     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("İlk açılış 5 saniye doldu, Sert Sandbox aktif!");
+                    console.log("5 saniye doldu, Kesintisiz Sert Sandbox aktif!");
                 }
-            }, 5 * 1000);
+            }, 5 * 1000); // 5 saniye
         };
     </script>
 
