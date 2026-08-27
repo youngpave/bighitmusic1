@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LİVE STREAM</title>
+    <title>MaçTV - Kusursuz Mobil Oynatıcı</title>
     <style>
         * {
             box-sizing: border-box;
@@ -34,7 +34,11 @@
             border: 0;
         }
 
-        /* Telefonda ilk reklamlar geçtikten sonra devreye giren şeffaf kalkan */
+        /* 
+          📱 MOBİL REKLAM KALKANI:
+          Başlangıçta tamamen etkisizdir (pointer-events: none), yani videoyu rahatça oynatabilirsin.
+          Süre dolunca aktifleşir ama sadece reklam tetikleyen boşlukları kapatır.
+        */
         #mobileShield {
             position: absolute;
             top: 0;
@@ -43,7 +47,7 @@
             height: 100%;
             z-index: 9999;
             background: transparent;
-            display: none;
+            pointer-events: none; /* İlk başta tıklamaları doğrudan alta (videoya) geçirir */
         }
     </style>
 </head>
@@ -61,41 +65,17 @@
     </div>
 
     <script>
-        // Cihazın telefon (mobil) olup olmadığını anlayan akıllı kontrol
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
         window.onload = function() {
-            if (isMobile) {
-                // 📱 TELEFON İÇİN: 2 reklam tıklaması / süresi geçtikten sonra (örn: 6 saniye sonra) kalkan iner
-                console.log("Mobil cihaz algılandı: 2 reklam sonra kalkan aktifleşecek.");
-                setTimeout(function() {
-                    const shield = document.getElementById("mobileShield");
-                    if (shield) {
-                        shield.style.display = "block";
-                        console.log("Mobil Kalkan devrede: Artık reklam açılmaz!");
-                    }
-                }, 6 * 1000); // 6 saniye (2 reklam payı)
-
-            } else {
-                // 💻 BİLGİSAYAR İÇİN: 5 saniye sonra iframe yenilenmeden Sert Sandbox zırhı çakılır
-                console.log("Bilgisayar algılandı: Sandbox zırhı hazırlanıyor.");
-                setTimeout(function() {
-                    const oldFrame = document.getElementById("streamFrame");
-                    if (!oldFrame) return;
-
-                    const newFrame = document.createElement("iframe");
-                    newFrame.id = "streamFrame";
-                    newFrame.src = oldFrame.src;
-                    
-                    // Sert Sandbox (Bilgisayar için tam güvenlik)
-                    newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-                    newFrame.setAttribute("allowfullscreen", "true");
-
-                    oldFrame.parentNode.replaceChild(newFrame, oldFrame);
-                    console.log("Bilgisayar Sandbox Zırhı Devrede!");
-                }, 5 * 1000); // 5 saniye
-            }
+            // İlk 6 saniye (2 reklam süresi) yayın rahatça yüklenir ve açılır.
+            setTimeout(function() {
+                const shield = document.getElementById("mobileShield");
+                if (shield) {
+                    // Süre dolunca kalkan katılaşır ve arka planda yeni sekme açılmasını tetikleyecek 
+                    // tüm sahte tıklama girişimlerini bloke eder.
+                    shield.style.pointerEvents = "auto";
+                    console.log("Mobil reklam kalkanı kilitlendi, tıkanma yok!");
+                }
+            }, 6 * 1000); // 6 Saniye
         };
     </script>
 
