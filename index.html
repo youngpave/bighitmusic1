@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Mobil Oynatıcı</title>
+    <title>MaçTV - 2 Reklam Sonrası Kilit</title>
     <style>
         * {
             box-sizing: border-box;
@@ -34,12 +34,7 @@
             border: 0;
         }
 
-        /* 
-          🛡️ Şeffaf Reklam Engelleyici Kalkan:
-          İlk 6 saniye (2 reklam süresi boyunca) kapalıdır, yayın ve player rahatça açılır.
-          Süre dolduktan sonra aktifleşerek arkadan reklam/pop-up açılmasını tetikleyecek 
-          tüm dış tıklamaları tamamen engeller.
-        */
+        /* 2 reklamdan sonra devreye girip yeni sekmeleri mühürleyen şeffaf kalkan */
         #adBlockShield {
             position: absolute;
             top: 0;
@@ -48,17 +43,16 @@
             height: 100%;
             z-index: 9999;
             background: transparent;
-            display: none; /* Başlangıçta gizli */
+            display: none; /* İlk başta açık (reklamların çıkmasına izin verilir) */
         }
     </style>
 </head>
 <body>
 
     <div class="video-wrapper">
-        <!-- Reklam Kalkanı -->
+        <!-- Kalkan -->
         <div id="adBlockShield"></div>
 
-        <!-- Sandbox'sız, tamamen saf ve özgür oynatıcı -->
         <iframe 
             id="streamFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
@@ -69,14 +63,15 @@
 
     <script>
         window.onload = function() {
-            // İlk 6 saniye (yaklaşık 2 reklam süresi) boyunca hiçbir şeye dokunulmaz, yayın sorunsuz başlar.
+            // İlk 2 reklamın rahatça çıkabilmesi için süre tanınıyor (Örn: 6 saniye). 
+            // Bu süre içinde ekrana tıklayıp ilk 2 reklamı geçebilirsin.
             setTimeout(function() {
                 const shield = document.getElementById("adBlockShield");
                 if (shield) {
-                    shield.style.display = "block"; // Kalkan örtülür
-                    console.log("2 reklam süresi doldu: Kalkan aktif, artık reklam çıkmaz!");
+                    shield.style.display = "block"; // Süre bitince kalkan örtülür
+                    console.log("2 reklam hakkı doldu: Kalkan aktif, bir daha reklam çıkmayacak!");
                 }
-            }, 6 * 1000); // 6 Saniye
+            }, 6 * 1000); // 6 Saniye (2 reklam payı)
         };
     </script>
 
