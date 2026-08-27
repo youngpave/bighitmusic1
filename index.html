@@ -3,124 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>MaçTV - Kesintisiz Oynatıcı</title>
-
+    <title>MaçTV - Canlı Yayın</title>
     <style>
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
             width: 100%;
             height: 100%;
-            background: #000;
+            background-color: #000;
             overflow: hidden;
         }
-
-        .app-container {
+        .video-container {
             position: relative;
             width: 100%;
             height: 100%;
-            background: #000;
+            background-color: #000;
         }
-
-        .player-box {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: #000;
-        }
-
         iframe {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;  
+            height: 100%; 
+            border: none;
+        }
+        /* Player'ın üstüne binen ama videonun yüklenmesine asla engel olmayan şeffaf kalkan */
+        #clickShield {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            border: none;
-            display: block;
+            z-index: 999;
+            background: transparent;
         }
     </style>
 </head>
-
 <body>
 
-<div class="app-container">
-    <div class="player-box" id="playerContainer">
+    <div class="video-container">
+        <!-- İlk açılışta tıklamaları yakalayıp reklamları ehlileştiren şeffaf kalkan -->
+        <div id="clickShield"></div>
 
-        <iframe
-            id="streamFrame"
-            src="https://dlstreams.st/watch/stream-62.php"
-            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-modals allow-pointer-lock"
+        <!-- Sandbox YOK! Player tamamen özgür, token ve akış asla tıkanmaz -->
+        <iframe 
+            id="playerFrame"
+            src="https://dlstreams.st/watch/stream-62.php" 
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            allowfullscreen>
+            allowfullscreen="true">
         </iframe>
-
     </div>
-</div>
 
-<script>
-(function () {
+    <script>
+        const shield = document.getElementById("clickShield");
+        const KEY = "mactv_counter";
+        const MAX = 2; // İlk 2 reklam / etkileşim sınırı
 
-    const frame = document.getElementById("streamFrame");
+        // Hafızadan durumu kontrol et
+        let count = parseInt(localStorage.getItem(KEY) || "0", 10);
 
-    if (!frame) return;
+        if (count >= MAX) {
+            // Daha önce hak dolduysa kalkanı direkt yok et
+            shield.remove();
+        } else {
+            shield.addEventListener("touchstart", function () {
+                count++;
+                localStorage.setItem(KEY, count);
+                window.name = count.toString();
 
-    /*
-     * Player KORUNUYOR.
-     *
-     * iframe yenilenmiyor.
-     * Böylece canlı yayın her birkaç dakikada
-     * bir yeniden başlatılmıyor.
-     *
-     * allow-popups kullanılmıyor.
-     * Bu nedenle popup/reklam açma yetkisi
-     * özellikle verilmemiş oluyor.
-     */
+                if (count >= MAX) {
+                    // 2. haktan sonra kalkanı tamamen uçur, video tamamen senin olsun
+                    shield.remove();
+                    return;
+                }
 
+                // İlk dokunuştan sonra kısa süre tıklamayı keserek arka arkaya sekme açılmasını engelle
+                shield.style.pointerEvents = "none";
+                setTimeout(function () {
+                    if (shield && shield.parentNode) {
+                        shield.style.pointerEvents = "auto";
+                    }
+                }, 1200);
 
-    /*
-     * Sayfa görünürlük kontrolü
-     *
-     * Kullanıcı başka uygulamaya geçip geri döndüğünde
-     * iframe'e odaklanmayı deniyoruz.
-     *
-     * iframe'in içeriğine müdahale etmiyoruz.
-     */
-
-    document.addEventListener("visibilitychange", function () {
-
-        if (!document.hidden) {
-
-            try {
-                frame.focus();
-            } catch (e) {
-                // iframe odaklanmayı desteklemiyorsa hiçbir şey yapma
-            }
-
+            }, { passive: true });
         }
 
-    });
-
-
-    /*
-     * Kullanıcı player alanına dokunduğunda iframe'in
-     * odaklanmasını sağla.
-     */
-
-    frame.addEventListener("load", function () {
-
-        try {
-            frame.focus();
-        } catch (e) {}
-
-    });
-
-})();
-</script>
+        // Arkaya kaçmaya çalışan sekmeleri anında yakala
+        window.open = function() { return null; };
+        window.addEventListener('blur', function() {
+            if (count >= MAX) {
+                window.focus();
+            }
+        });
+    </script>
 
 </body>
 </html>
