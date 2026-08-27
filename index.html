@@ -3,75 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - beIN Sports 1 TR</title>
+
+    <title>MaçTV - Canlı Yayın</title>
+
     <style>
-        * {
-            box-sizing: border-box;
+        html,
+        body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        html, body {
             width: 100%;
             height: 100%;
-            background-color: #0b0f19;
+            background: #000;
             overflow: hidden;
         }
 
-        .video-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .video-container {
+            position: relative;
             width: 100%;
             height: 100%;
-            background: #0b0f19;
+            background: #000;
         }
 
-        .video-wrapper iframe {
+        #playerFrame {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             border: 0;
         }
 
-        /* En baştan aktif olan, reklam ve pop-up'ları tamamen engelleyen şeffaf kalkan */
-        #adBlockShield {
+        /* Telefonda reklamları ilk başta sınırlayan şeffaf kalkan */
+        #clickShield {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
+            inset: 0;
+            z-index: 999;
             background: transparent;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="video-wrapper">
-        <!-- Reklam Kalkanı -->
-        <div id="adBlockShield"></div>
+<div class="video-container" id="container">
 
-        <iframe 
-            id="streamFrame"
-            src="" 
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            allowfullscreen="true">
-        </iframe>
-    </div>
+    <div id="clickShield"></div>
 
-    <script>
-        // Senin verdiğin yeni ve VPN gerektiren link
-        const originalUrl = "https://wideiptv.top/player/BEINSPORTS1TR";
+    <iframe
+        id="playerFrame"
+        src="https://dlstreams.st/watch/stream-62.php"
+        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+        allowfullscreen>
+    </iframe>
+
+</div>
+
+<script>
+(function () {
+
+    const frame = document.getElementById("playerFrame");
+    const shield = document.getElementById("clickShield");
+    const container = document.querySelector(".video-container");
+
+    const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+        .test(navigator.userAgent);
+
+    if (isMobile) {
+        // 📱 TELEFON: İframe'e ASLA dokunulmuyor (Clappr motoru sıfırlanmıyor, risk yok).
+        // Sadece şeffaf kalkan ve sayaç mekanizması çalışıyor.
         
-        // Türkiye'deki engeli ve VPN zorunluluğunu bypass eden küresel proxy tüneli
-        const globalStreamUrl = "https://corsproxy.io/?" + encodeURIComponent(originalUrl);
+        const KEY = "mactv_counter";
+        const MAX = 2;
 
-        window.onload = function() {
-            const frame = document.getElementById("streamFrame");
-            frame.src = globalStreamUrl;
-        };
-    </script>
+        // localStorage ve sekme hafızasından sayacı güvenle oku
+        let count = 0;
+        try {
+            const localVal = localStorage.getItem(KEY);
+            const nameVal = window.name;
+            if (localVal) {
+                count = parseInt(localVal, 10);
+            } else if (nameVal && !isNaN(nameVal)) {
+                count = parseInt(nameVal, 10);
+            }
+        } catch (e) {
+            count = 0;
+        }
+
+        // Eğer 2 reklam hakkı daha önceden dolmuşsa kalkanı hiç gösterme
+        if (count >= MAX) {
+            shield.remove();
+        } else {
+            shield.addEventListener("touchstart", function () {
+                count++;
+                
+                try {
+                    localStorage.setItem(KEY, count);
+                    window.name = count.toString();
+                } catch (e) {}
+
+                // 2. etkileşimden sonra kalkanı tamamen kaldırıp serbest bırak
+                if (count >= MAX) {
+                    shield.remove();
+                    return;
+                }
+
+                // İlk etkileşimden sonra kısa süre dokunmayı keserek zincirleme reklamları engelle
+                shield.style.pointerEvents = "none";
+                setTimeout(function () {
+                    if (shield && shield.parentNode) {
+                        shield.style.pointerEvents = "auto";
+                    }
+                }, 1200);
+
+            }, { passive: true });
+        }
+
+        // Güvenlik: Arkaya kaçmaya çalışan sekmeleri engelle
+        window.addEventListener('blur', function() {
+            if (count >= MAX) {
+                window.focus();
+            }
+        });
+
+    } else {
+        // 🖥️ BİLGİSAYAR: Mevcut çalışan güvenli sandbox sistemi
+        const src = frame.src;
+
+        const secureFrame = document.createElement("iframe");
+        secureFrame.id = "playerFrame";
+        secureFrame.src = src;
+
+        secureFrame.setAttribute(
+            "sandbox",
+            "allow-scripts allow-same-origin allow-presentation allow-forms"
+        );
+
+        secureFrame.setAttribute(
+            "allow",
+            "autoplay; fullscreen; encrypted-media; picture-in-picture"
+        );
+
+        secureFrame.setAttribute(
+            "allowfullscreen",
+            "true"
+        );
+
+        secureFrame.style.position = "absolute";
+        secureFrame.style.inset = "0";
+        secureFrame.style.width = "100%";
+        secureFrame.style.height = "100%";
+        secureFrame.style.border = "0";
+
+        frame.replaceWith(secureFrame);
+        shield.remove();
+    }
+
+})();
+</script>
 
 </body>
 </html>
