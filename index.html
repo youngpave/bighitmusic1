@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Tekli Oynatıcı</title>
+    <title>MaçTV - Tam Ekran Oynatıcı</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,41 +12,25 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body {
+        /* Sayfanın tamamını kaplaması ve kaydırma çubuklarının çıkmaması için body ayarı */
+        html, body {
+            width: 100%;
+            height: 100%;
             background-color: #0b0f19;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Video Kapsayıcısı */
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Oranı */
-            background: #131825;
-            border-radius: 16px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
-        .video-wrapper iframe {
+        /* Oynatıcının ekranı tam olarak doldurması için esnek yapı */
+        .video-wrapper {
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0b0f19;
+        }
+
+        .video-wrapper iframe {
             width: 100%;
             height: 100%;
             border: 0;
@@ -55,17 +39,15 @@
 </head>
 <body>
 
-    <div class="container">
-        <!-- Canlı Yayın Oynatıcısı (İlk 5 saniye esnek mod, sonrasında sert sandbox) -->
-        <div class="video-wrapper">
-            <iframe 
-                id="streamFrame"
-                src="https://dlstreams.st/watch/stream-62.php" 
-                sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                allowfullscreen="true">
-            </iframe>
-        </div>
+    <!-- Tam Ekran Canlı Yayın Oynatıcısı -->
+    <div class="video-wrapper">
+        <iframe 
+            id="streamFrame"
+            src="https://dlstreams.st/watch/stream-62.php" 
+            sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            allowfullscreen="true">
+        </iframe>
     </div>
 
     <script>
@@ -75,7 +57,7 @@
                 const frame = document.getElementById("streamFrame");
                 if (frame) {
                     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-                    console.log("5 saniye doldu, Kesintisiz Sert Sandbox aktif!");
+                    console.log("5 saniye doldu, Tam Ekran Kesintisiz Sert Sandbox aktif!");
                 }
             }, 5 * 1000); // 5 saniye
         };
