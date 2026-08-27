@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV - Kesintisiz Kalkanlı Oynatıcı</title>
+    <title>LİVE STREAM</title>
     <style>
         * {
             box-sizing: border-box;
@@ -34,13 +34,8 @@
             border: 0;
         }
 
-        /* 
-          🛡️ REKLAM KALKANI (OVERLAY):
-          İlk 5 saniye devre dışıdır (gizlidir). 
-          5 saniye dolduğun an oynatıcının üzerine inerek arkadan pop-up açılmasını tetikleyecek 
-          tüm dış tıklama ve yönlendirmeleri tamamen engeller.
-        */
-        #adShield {
+        /* Telefonda ilk reklamlar geçtikten sonra devreye giren şeffaf kalkan */
+        #mobileShield {
             position: absolute;
             top: 0;
             left: 0;
@@ -48,35 +43,59 @@
             height: 100%;
             z-index: 9999;
             background: transparent;
-            display: none; /* İlk 5 saniye kapalı, yayın rahatça açılır */
+            display: none;
         }
     </style>
 </head>
 <body>
 
     <div class="video-wrapper" id="playerContainer">
-        <!-- Reklamları engelleyen şeffaf kalkan -->
-        <div id="adShield"></div>
-
+        <div id="mobileShield"></div>
         <iframe 
             id="streamFrame"
             src="https://dlstreams.st/watch/stream-62.php" 
+            sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowfullscreen="true">
         </iframe>
     </div>
 
     <script>
-        // Sayfa açıldıktan tam 5 saniye sonra, akışı hiç bozmadan, 
-        // ekranı yenilemeden reklam kalkanını sessizce aktif ediyoruz.
+        // Cihazın telefon (mobil) olup olmadığını anlayan akıllı kontrol
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         window.onload = function() {
-            setTimeout(function() {
-                const shield = document.getElementById("adShield");
-                if (shield) {
-                    shield.style.display = "block"; // Kalkan örtülür
-                    console.log("5 saniye doldu: Reklam kalkanı devrede, yenilenme yok!");
-                }
-            }, 5 * 1000); // 5 Saniye
+            if (isMobile) {
+                // 📱 TELEFON İÇİN: 2 reklam tıklaması / süresi geçtikten sonra (örn: 6 saniye sonra) kalkan iner
+                console.log("Mobil cihaz algılandı: 2 reklam sonra kalkan aktifleşecek.");
+                setTimeout(function() {
+                    const shield = document.getElementById("mobileShield");
+                    if (shield) {
+                        shield.style.display = "block";
+                        console.log("Mobil Kalkan devrede: Artık reklam açılmaz!");
+                    }
+                }, 6 * 1000); // 6 saniye (2 reklam payı)
+
+            } else {
+                // 💻 BİLGİSAYAR İÇİN: 5 saniye sonra iframe yenilenmeden Sert Sandbox zırhı çakılır
+                console.log("Bilgisayar algılandı: Sandbox zırhı hazırlanıyor.");
+                setTimeout(function() {
+                    const oldFrame = document.getElementById("streamFrame");
+                    if (!oldFrame) return;
+
+                    const newFrame = document.createElement("iframe");
+                    newFrame.id = "streamFrame";
+                    newFrame.src = oldFrame.src;
+                    
+                    // Sert Sandbox (Bilgisayar için tam güvenlik)
+                    newFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
+                    newFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+                    newFrame.setAttribute("allowfullscreen", "true");
+
+                    oldFrame.parentNode.replaceChild(newFrame, oldFrame);
+                    console.log("Bilgisayar Sandbox Zırhı Devrede!");
+                }, 5 * 1000); // 5 saniye
+            }
         };
     </script>
 
