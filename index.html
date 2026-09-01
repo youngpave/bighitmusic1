@@ -1,20 +1,73 @@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://betneftvizle.com/view/theme/ultimate/assets/js/jquery.fancybox.min.js"></script>
-    <script src="https://betneftvizle.com/view/theme/ultimate/assets/js/glide.min.js"></script>
-</head>
-<body class="live-page">
-    <div class="container" style="padding: 20px 0;">
-        <div class="live-player" style="position: relative; width: 100%; max-width: 900px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.8);">
-            
-            <!-- Senin bulduğun ham engelsiz kaynak doğrudan video etiketine bağlanıyor -->
-            <video id="live-video-player" controls autoplay playsinline style="width: 100%; height: auto; display: block; aspect-ratio: 16/9;">
-                <source src="https://m1.d5aa1729c8c253e5d917a5264855eab8.biz/v/312650249600135168/index.css" type="application/x-mpegURL">
-                Tarayıcınız video oynatmayı desteklemiyor.
-            </video>
+<!DOCTYPE html>
+<html lang="tr">
+    <head><meta charset="utf-8">
 
-            <!-- Senin tasarladığın özel reklam/tıklama koruma katmanı (Shield) -->
-            <div class="player-shield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; background: transparent;" onclick="this.style.display='none'; document.getElementById('live-video-player').play();"></div>
-        </div>
-    </div>
-</body>
-</html>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/jquery.fancybox.min.css" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/videoplayer.css?v=130920202" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/playerstyle.css?v=130920202" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/glide.core.css?v=130920202" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/glide.theme.css?v=130920202" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/Style.css?v=130920202" />
+        <link rel="stylesheet" href=https://betneftvizle.com/view/theme/ultimate/assets/css/radar.css?v=130920202" />
+        <link rel="stylesheet" href="https://betneftvizle.com/view/theme/ultimate/assets/css/Responsive.css?v=130920202" />
+        <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,700&amp;display=swap" rel="stylesheet" />
+        <style>
+            .live-player,
+            .plyr--video {
+                --color: #e53c33;
+            }
+            body,
+            input,
+            textarea,
+            option,
+            select,
+            .sr-bb,
+            .plyr--video,
+            .sr-widget {
+                font-family: "Rubik", sans-serif !important;
+            }
+            body {
+                background: #05070b;
+                --mobilbg: #32333f;
+                --ampbg: #32333f;
+            }
+            body::before {
+                background-image: radial-gradient(circle at center, #32333f 0, transparent 66.66%);
+            }
+            .list-count {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 0px);
+    display: none;
+    line-height: 1;
+    color: #fff;
+    background: #e53c33;
+    font-size: .75em;
+    white-space: nowrap;
+    animation: listblink 1000ms linear infinite;
+    padding: .5em 0;
+    text-align: center;
+}
+        </style>
+       
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+        <link rel="shortcut icon" href="https://betneftvizle.com/view/theme/ultimate/img/bn.png" type="image/x-icon" />
+      
+        <title>Betnef  TV | Canlı Maç izle</title>
+        <meta name="description" content="Betnef  TV:Canlı maç izle, ücretsiz hd maç izle" />
+        <meta name="keywords" content="" />
+
+        <meta property="og:title" content="Betnef  TV | Canlı Maç izle" />
+        <meta property="og:description" content="Betnef  TV:Canlı maç izle, ücretsiz hd maç izle" />
+        <meta property="og:type" content="website" />
+        <link rel="dns-prefetch" href="//i2.cnnturk.com" />
+        
+  
+    <script>
