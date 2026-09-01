@@ -1,165 +1,20 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>MaçTV - Canlı Yayın</title>
-
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-        }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: #000;
-        }
-
-        #playerFrame {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-
-        /* Telefonda reklamları ilk başta sınırlayan şeffaf kalkan */
-        #clickShield {
-            position: absolute;
-            inset: 0;
-            z-index: 999;
-            background: transparent;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://betneftvizle.com/view/theme/ultimate/assets/js/jquery.fancybox.min.js"></script>
+    <script src="https://betneftvizle.com/view/theme/ultimate/assets/js/glide.min.js"></script>
 </head>
+<body class="live-page">
+    <div class="container" style="padding: 20px 0;">
+        <div class="live-player" style="position: relative; width: 100%; max-width: 900px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.8);">
+            
+            <!-- Senin bulduğun ham engelsiz kaynak doğrudan video etiketine bağlanıyor -->
+            <video id="live-video-player" controls autoplay playsinline style="width: 100%; height: auto; display: block; aspect-ratio: 16/9;">
+                <source src="https://m1.d5aa1729c8c253e5d917a5264855eab8.biz/v/312650249600135168/index.css" type="application/x-mpegURL">
+                Tarayıcınız video oynatmayı desteklemiyor.
+            </video>
 
-<body>
-
-<div class="video-container" id="container">
-
-    <div id="clickShield"></div>
-
-    <iframe
-        id="playerFrame"
-        src="https://dlstreams.st/watch/stream-62.php"
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-        allowfullscreen>
-    </iframe>
-
-</div>
-
-<script>
-(function () {
-
-    const frame = document.getElementById("playerFrame");
-    const shield = document.getElementById("clickShield");
-    const container = document.querySelector(".video-container");
-
-    const isMobile =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
-        .test(navigator.userAgent);
-
-    if (isMobile) {
-        // 📱 TELEFON: İframe'e ASLA dokunulmuyor (Clappr motoru sıfırlanmıyor, risk yok).
-        // Sadece şeffaf kalkan ve sayaç mekanizması çalışıyor.
-        
-        const KEY = "mactv_counter";
-        const MAX = 2;
-
-        // localStorage ve sekme hafızasından sayacı güvenle oku
-        let count = 0;
-        try {
-            const localVal = localStorage.getItem(KEY);
-            const nameVal = window.name;
-            if (localVal) {
-                count = parseInt(localVal, 10);
-            } else if (nameVal && !isNaN(nameVal)) {
-                count = parseInt(nameVal, 10);
-            }
-        } catch (e) {
-            count = 0;
-        }
-
-        // Eğer 2 reklam hakkı daha önceden dolmuşsa kalkanı hiç gösterme
-        if (count >= MAX) {
-            shield.remove();
-        } else {
-            shield.addEventListener("touchstart", function () {
-                count++;
-                
-                try {
-                    localStorage.setItem(KEY, count);
-                    window.name = count.toString();
-                } catch (e) {}
-
-                // 2. etkileşimden sonra kalkanı tamamen kaldırıp serbest bırak
-                if (count >= MAX) {
-                    shield.remove();
-                    return;
-                }
-
-                // İlk etkileşimden sonra kısa süre dokunmayı keserek zincirleme reklamları engelle
-                shield.style.pointerEvents = "none";
-                setTimeout(function () {
-                    if (shield && shield.parentNode) {
-                        shield.style.pointerEvents = "auto";
-                    }
-                }, 1200);
-
-            }, { passive: true });
-        }
-
-        // Güvenlik: Arkaya kaçmaya çalışan sekmeleri engelle
-        window.addEventListener('blur', function() {
-            if (count >= MAX) {
-                window.focus();
-            }
-        });
-
-    } else {
-        // 🖥️ BİLGİSAYAR: Mevcut çalışan güvenli sandbox sistemi
-        const src = frame.src;
-
-        const secureFrame = document.createElement("iframe");
-        secureFrame.id = "playerFrame";
-        secureFrame.src = src;
-
-        secureFrame.setAttribute(
-            "sandbox",
-            "allow-scripts allow-same-origin allow-presentation allow-forms"
-        );
-
-        secureFrame.setAttribute(
-            "allow",
-            "autoplay; fullscreen; encrypted-media; picture-in-picture"
-        );
-
-        secureFrame.setAttribute(
-            "allowfullscreen",
-            "true"
-        );
-
-        secureFrame.style.position = "absolute";
-        secureFrame.style.inset = "0";
-        secureFrame.style.width = "100%";
-        secureFrame.style.height = "100%";
-        secureFrame.style.border = "0";
-
-        frame.replaceWith(secureFrame);
-        shield.remove();
-    }
-
-})();
-</script>
-
+            <!-- Senin tasarladığın özel reklam/tıklama koruma katmanı (Shield) -->
+            <div class="player-shield" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; background: transparent;" onclick="this.style.display='none'; document.getElementById('live-video-player').play();"></div>
+        </div>
+    </div>
 </body>
 </html>
