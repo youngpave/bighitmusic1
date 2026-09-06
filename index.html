@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Canlı IPTV Oynatıcı</title>
-    <!-- HLS.js Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { background: #000; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
@@ -16,8 +15,10 @@
 
     <script>
         var video = document.getElementById('video');
-        // Doğrudan ham linkimizi buraya yapıştırıyoruz
-        var videoSrc = 'http://avrupatv323.com:2095/live/mert7400/mrt0712gg00bb33/209476.m3u8';
+        
+        // Ham linkimizi ücretsiz public proxy (allorigins) üzerinden geçiriyoruz
+        var rawUrl = 'http://avrupatv323.com:2095/live/mert7400/mrt0712gg00bb33/209476.m3u8';
+        var videoSrc = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawUrl);
 
         if (Hls.isSupported()) {
             var hls = new Hls();
