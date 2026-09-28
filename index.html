@@ -1,1 +1,5 @@
-<iframe src="https://dlive.sx/stream/stream-62.php" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none;" sandbox="allow-scripts allow-same-origin allow-presentation" allowfullscreen></iframe>
+<!-- Şeffaf katman (başta görünür ve tam kaplar) -->
+<div id="ad-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; z-index: 9999; cursor: pointer;"></div>
+
+<!-- İframe (başta sandbox'sız yüklenir) -->
+<iframe id="video-frame" src="https://dlive.sx/stream/stream-62.php" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: 9998;" allowfullscreen></iframe>
