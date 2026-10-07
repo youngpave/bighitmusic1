@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Bein Sports 11 - Agresif Mod</title>
+    <title>Bein Sports 1 - 40 Saniye Gecikmeli Mod</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
@@ -15,18 +15,21 @@
 
     <script>
         var video = document.getElementById('video');
-        var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/5e8975608208b7989075ae6d7c460a63d40fcb18273b73c512f36dc2f1ab9903/1791378933/bein1tr.m3u8';
+        var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/f9aba2a0c046b78cedda92145f222969bb3fe9b81724124fb6cb1c0dcb86fe86/1791388261/bein1tr.m3u8';
 
         if (Hls.isSupported()) {
             var hlsConfig = {
-                // Tamponu küçük tutuyoruz ki sunucu tıkandığında kilitlenip kalmasın
-                maxBufferLength: 10,
-                maxMaxBufferLength: 30,
-                liveSyncDurationCount: 1,
-                // Sunucu takıldığında veya kopmada anında tekrar denemesi için agresif ayarlar
-                fragLoadingTimeOut: 10000,
-                manifestLoadingTimeOut: 10000,
-                startLevel: -1
+                // Yayını tam 40 saniye geriden (delay ile) başlat ve o mesafeyi koru
+                liveSyncDuration: 40,
+                liveMaxLatencyDuration: 60,
+                
+                // 40 saniyelik gecikmeyi rahatça depolayabilmesi için tampon boyutu
+                maxBufferLength: 90,
+                maxMaxBufferLength: 180,
+
+                // Sunucu kopmalarına karşı esnek zaman aşımı
+                fragLoadingTimeOut: 20000,
+                manifestLoadingTimeOut: 20000
             };
 
             var hls = new Hls(hlsConfig);
@@ -40,11 +43,16 @@
                 });
             });
             
-            // Hata anında milisaniyesinde yayını tazeleyen mekanizma
+            // Hata anında akışı koparmadan devam ettirme
             hls.on(Hls.Events.ERROR, function(event, data) {
                 if (data.fatal) {
-                    console.log("Yayın koptu, anında yeniden yükleniyor...");
-                    hls.startLoad();
+                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                        hls.startLoad();
+                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                        hls.recoverMediaError();
+                    } else {
+                        hls.destroy();
+                    }
                 }
             });
         } 
