@@ -201,7 +201,7 @@
                 });
             });
 
-            // Video hazır olduğunda ilk konumlandırma
+            // İlk açılışta 50 saniye geriden başlat
             video.addEventListener('canplay', function() {
                 setTimeout(function() {
                     go50SecondsBehind();
@@ -295,25 +295,6 @@
                 video.currentTime = target;
             }
         }
-
-        // Yayın boyunca her 2 saniyede bir 50 saniye geride kalmasını garantile
-        setInterval(function() {
-            if (video.buffered.length > 0 && !video.paused) {
-                var last = video.buffered.length - 1;
-                var liveEdge = video.buffered.end(last);
-                var bufferStart = video.buffered.start(last);
-                
-                var target = liveEdge - DELAY_FROM_LIVE;
-                if (target < bufferStart) {
-                    target = bufferStart;
-                }
-                
-                // Eğer oyuncu canlıya çok yaklaşırsa (5 saniyeden az fark kalırsa) tekrar 50 saniyeye çek
-                if (Math.abs(video.currentTime - target) > 5) {
-                    video.currentTime = target;
-                }
-            }
-        }, 2000);
 
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
