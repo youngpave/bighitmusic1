@@ -91,6 +91,29 @@
         .ctrl-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+        /* Ses Ayar Bölümü */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .volume-bar {
+            width: 70px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            cursor: pointer;
+            appearance: none;
+            outline: none;
+        }
+        .volume-bar::-webkit-slider-thumb {
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
         .live-badge {
             display: flex;
             align-items: center;
@@ -133,6 +156,11 @@
                     </div>
                 </div>
                 <div class="right-group">
+                    <!-- Ses Kontrolleri -->
+                    <div class="volume-container">
+                        <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">Ses: Açık</button>
+                        <input type="range" id="volumeBar" class="volume-bar" value="1" max="1" step="0.05">
+                    </div>
                     <button class="ctrl-btn" onclick="toggleFullscreen()">Tam Ekran</button>
                 </div>
             </div>
@@ -142,6 +170,8 @@
     <script>
         var video = document.getElementById('video');
         var playBtn = document.getElementById('playBtn');
+        var muteBtn = document.getElementById('muteBtn');
+        var volumeBar = document.getElementById('volumeBar');
         var seekBar = document.getElementById('seekBar');
         var playerContainer = document.getElementById('playerContainer');
         var controls = document.getElementById('controls');
@@ -166,6 +196,7 @@
                 video.play().catch(e => {
                     video.muted = true;
                     video.play();
+                    muteBtn.innerText = "Sessiz";
                 });
             });
 
@@ -181,6 +212,13 @@
                     var time = (seekBar.value / 100) * video.duration;
                     video.currentTime = time;
                 }
+            });
+
+            // Ses çubuğu ayarı
+            volumeBar.addEventListener('input', function() {
+                video.volume = volumeBar.value;
+                video.muted = (volumeBar.value == 0);
+                muteBtn.innerText = video.muted ? "Sessiz" : "Ses: Açık";
             });
 
             hls.on(Hls.Events.ERROR, function(event, data) {
@@ -212,6 +250,17 @@
             }
         }
 
+        function toggleMute() {
+            video.muted = !video.muted;
+            if (video.muted) {
+                muteBtn.innerText = "Sessiz";
+                volumeBar.value = 0;
+            } else {
+                muteBtn.innerText = "Ses: Açık";
+                volumeBar.value = video.volume > 0 ? video.volume : 1;
+            }
+        }
+
         function goLive() {
             if (video.buffered.length > 0) {
                 video.currentTime = video.buffered.end(video.buffered.length - 1);
@@ -240,7 +289,7 @@
                     controls.classList.add('hidden');
                     document.body.classList.add('hide-cursor');
                 }
-            }, 2000); // 2 saniye hareketsiz kalırsa kaybolur
+            }, 2000);
         });
     </script>
 
