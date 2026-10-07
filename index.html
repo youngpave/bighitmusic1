@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Bein Sports 1 - 50 Saniye Gecikmeli Mod</title>
+    <title>Bein Sports 1 - Süper Agresif Mod</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
@@ -19,17 +19,18 @@
 
         if (Hls.isSupported()) {
             var hlsConfig = {
-                // Yayını tam 50 saniye geriden (delay ile) başlat ve o mesafeyi koru
                 liveSyncDuration: 50,
-                liveMaxLatencyDuration: 70,
+                liveMaxLatencyDuration: 80,
+                maxBufferLength: 120,
+                maxMaxBufferLength: 240,
                 
-                // 50 saniyelik gecikmeyi ve tamponu rahatça depolayabilmesi için boyutlar
-                maxBufferLength: 100,
-                maxMaxBufferLength: 200,
-
-                // Sunucu kopmalarına karşı esnek zaman aşımı
-                fragLoadingTimeOut: 20000,
-                manifestLoadingTimeOut: 20000
+                // Sunucu yavaşsa veya cevap vermiyorsa hemen tetiklenecek süreler
+                fragLoadingTimeOut: 15000,
+                manifestLoadingTimeOut: 15000,
+                levelLoadingTimeOut: 15000,
+                
+                // Takılmaları en aza indirmek için otomatik kurtarma eşikleri
+                lowLatencyMode: false
             };
 
             var hls = new Hls(hlsConfig);
@@ -43,15 +44,28 @@
                 });
             });
             
-            // Hata anında akışı koparmadan devam ettirme
+            // Oynatıcı takıldığında (buffer bittiğinde) anında tetiklenecek akıllı kurtarıcı
+            video.addEventListener('waiting', function() {
+                console.log("Yayın akışı takıldı, kurtarma tetikleniyor...");
+                hls.startLoad();
+            });
+
+            // Hata anında milisaniyesinde yeniden bağlanma
             hls.on(Hls.Events.ERROR, function(event, data) {
                 if (data.fatal) {
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                        hls.startLoad();
-                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                        hls.recoverMediaError();
-                    } else {
-                        hls.destroy();
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.log("Ağ hatası, yükleme yeniden başlatılıyor...");
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log("Medya hatası kurtarılıyor...");
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            console.log("Kritik hata, akış tazeleniyor...");
+                            hls.loadSource(videoSrc);
+                            break;
                     }
                 }
             });
