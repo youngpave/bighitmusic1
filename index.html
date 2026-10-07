@@ -147,8 +147,8 @@
             <div class="controls-row">
                 <div class="left-group">
                     <button class="ctrl-btn" id="playBtn" onclick="togglePlay()">Durdur</button>
-                    <div class="live-badge" onclick="go50SecondsBehind()" title="Canlı akışa (-50s) sabitle">
-                        <div class="live-dot"></div> CANLI (-50s)
+                    <div class="live-badge" onclick="goLive()" title="Canlıya (en sona) dönmek için tıkla">
+                        <div class="live-dot"></div> CANLI
                     </div>
                 </div>
                 <div class="right-group">
@@ -172,13 +172,9 @@
         var controls = document.getElementById('controls');
         
         var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/06a2a7fc2004144c88af584dcdc1ff7547ce841f5ba9e1453d2eec06d211a69d/1791398417/bein1tr.m3u8';
-        var DELAY_FROM_LIVE = 50;
-        var isUserSeeking = false; // Kullanıcının manuel müdahalesini takip etmek için
 
         if (Hls.isSupported()) {
             var hlsConfig = {
-                liveSyncDuration: 50,          // Canlı akışa 50 saniye mesafede senkronize ol
-                liveMaxLatencyDuration: 120,   // Maksimum gecikme sınırı
                 maxBufferLength: 180,
                 maxMaxBufferLength: 360,
                 fragLoadingTimeOut: 20000,
@@ -197,29 +193,6 @@
                 });
             });
 
-            // İlk açılışta 50 sn geriden başlat ve hls'ye bildir
-            video.addEventListener('canplay', function() {
-                setTimeout(function() {
-                    go50SecondsBehind();
-                }, 500);
-            }, { once: true });
-
-            // Düzenli aralıklarla (örneğin her 3 saniyede bir) eğer kullanıcı elle sarma yapmadıysa
-            // canlı kenarının 50 saniye gerisinde kalıp kalmadığını kontrol et ve hafifçe senkronize et
-            setInterval(function() {
-                if (!isUserSeeking && !video.paused && video.buffered.length > 0) {
-                    var last = video.buffered.length - 1;
-                    var liveEdge = video.buffered.end(last);
-                    var target = liveEdge - DELAY_FROM_LIVE;
-                    
-                    // Eğer yayın normal akışından çok fazla sapmışsa (örneğin 5 saniyeden fazla kaydıysa)
-                    // akışı bozmadan yumuşakça ideal 50 sn geriye sabitle
-                    if (Math.abs(video.currentTime - target) > 5) {
-                        video.currentTime = target;
-                    }
-                }
-            }, 3000);
-
             video.addEventListener('timeupdate', function() {
                 if (video.buffered.length > 0) {
                     var start = video.buffered.start(video.buffered.length - 1);
@@ -232,10 +205,6 @@
                 }
             });
 
-            // Kullanıcı çubukla oynadığında manuel müdahaleyi aktif et
-            seekBar.addEventListener('mousedown', function() { isUserSeeking = true; });
-            seekBar.addEventListener('touchstart', function() { isUserSeeking = true; });
-
             seekBar.addEventListener('input', function() {
                 if (video.buffered.length > 0) {
                     var start = video.buffered.start(video.buffered.length - 1);
@@ -244,12 +213,6 @@
                     var newTime = start + (seekBar.value / 100) * range;
                     video.currentTime = newTime;
                 }
-            });
-
-            // Bıraktıktan kısa süre sonra otomatik sabitlemeyi tekrar serbest bırakabilirsiniz 
-            // ya da kullanıcı tamamen "CANLI (-50s)" butonuna basana kadar manuel modda tutabilirsiniz.
-            seekBar.addEventListener('mouseup', function() { 
-                setTimeout(() => { isUserSeeking = false; }, 10000); 
             });
 
             volumeBar.addEventListener('input', function() {
@@ -262,86 +225,4 @@
                 if (data.fatal) {
                     if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
                         hls.startLoad();
-                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                        hls.recoverMediaError();
-                    } else {
-                        hls.destroy();
-                    }
-                }
-            });
-        } 
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = videoSrc;
-            video.addEventListener('loadedmetadata', function() {
-                video.play();
-            });
-            video.addEventListener('canplay', function() {
-                setTimeout(function() {
-                    go50SecondsBehind();
-                }, 500);
-            }, { once: true });
-        }
-
-        function togglePlay() {
-            if (video.paused) {
-                video.play();
-                playBtn.innerText = "Durdur";
-            } else {
-                video.pause();
-                playBtn.innerText = "Oynat";
-            }
-        }
-
-        function toggleMute() {
-            video.muted = !video.muted;
-            if (video.muted) {
-                muteBtn.innerText = "Sessiz";
-                volumeBar.value = 0;
-            } else {
-                muteBtn.innerText = "Ses: Açık";
-                volumeBar.value = video.volume > 0 ? video.volume : 1;
-            }
-        }
-
-        function go50SecondsBehind() {
-            isUserSeeking = false; // Manuel kilidi kaldır, tekrar 50s geriye sabitle
-            if (video.buffered.length > 0) {
-                var last = video.buffered.length - 1;
-                var liveEdge = video.buffered.end(last);
-                var bufferStart = video.buffered.start(last);
-                
-                var target = liveEdge - DELAY_FROM_LIVE;
-                if (target < bufferStart) {
-                    target = bufferStart;
-                }
-                video.currentTime = target;
-            }
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                playerContainer.requestFullscreen().catch(err => {
-                    console.log("Tam ekran hatası: ", err.message);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        }
-
-        let hideTimeout;
-        playerContainer.addEventListener('mousemove', function() {
-            controls.classList.remove('hidden');
-            document.body.classList.remove('hide-cursor');
-            
-            clearTimeout(hideTimeout);
-            hideTimeout = setTimeout(() => {
-                if (!video.paused) {
-                    controls.classList.add('hidden');
-                    document.body.classList.add('hide-cursor');
-                }
-            }, 2000);
-        });
-    </script>
-
-</body>
-</html>
+                    } else if (data.type === Hls.Error
