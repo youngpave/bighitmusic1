@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Bein Sports 1 - Oynatıcı</title>
+    <title>Bein Sports 11 - Agresif Mod</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
@@ -19,14 +19,14 @@
 
         if (Hls.isSupported()) {
             var hlsConfig = {
-                maxBufferLength: 60,
-                maxMaxBufferLength: 300,
-                xhrSetup: function (xhr, url) {
-                    // Tarayıcı güvenlik duvarını aşmak için istek başlıklarını düzenliyoruz
-                    xhr.open('GET', url, true);
-                    // Eğer kaynağın ait olduğu orijinal site adresini biliyorsan buraya yazmalısın:
-                    // xhr.setRequestHeader('Referer', 'ANABILGI_SITE_ADRESI');
-                }
+                // Tamponu küçük tutuyoruz ki sunucu tıkandığında kilitlenip kalmasın
+                maxBufferLength: 10,
+                maxMaxBufferLength: 30,
+                liveSyncDurationCount: 1,
+                // Sunucu takıldığında veya kopmada anında tekrar denemesi için agresif ayarlar
+                fragLoadingTimeOut: 10000,
+                manifestLoadingTimeOut: 10000,
+                startLevel: -1
             };
 
             var hls = new Hls(hlsConfig);
@@ -40,15 +40,11 @@
                 });
             });
             
+            // Hata anında milisaniyesinde yayını tazeleyen mekanizma
             hls.on(Hls.Events.ERROR, function(event, data) {
                 if (data.fatal) {
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                        hls.startLoad();
-                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                        hls.recoverMediaError();
-                    } else {
-                        hls.destroy();
-                    }
+                    console.log("Yayın koptu, anında yeniden yükleniyor...");
+                    hls.startLoad();
                 }
             });
         } 
