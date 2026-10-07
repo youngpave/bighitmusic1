@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Bein Sports 1 - 40 Saniye Gecikmeli Mod</title>
+    <title>Bein Sports 3 - 50 Saniye Gecikmeli Mod</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
@@ -19,13 +19,13 @@
 
         if (Hls.isSupported()) {
             var hlsConfig = {
-                // Yayını tam 40 saniye geriden (delay ile) başlat ve o mesafeyi koru
-                liveSyncDuration: 40,
-                liveMaxLatencyDuration: 60,
+                // Yayını tam 50 saniye geriden (delay ile) başlat ve o mesafeyi koru
+                liveSyncDuration: 50,
+                liveMaxLatencyDuration: 70,
                 
-                // 40 saniyelik gecikmeyi rahatça depolayabilmesi için tampon boyutu
-                maxBufferLength: 90,
-                maxMaxBufferLength: 180,
+                // 50 saniyelik gecikmeyi ve tamponu rahatça depolayabilmesi için boyutlar
+                maxBufferLength: 100,
+                maxMaxBufferLength: 200,
 
                 // Sunucu kopmalarına karşı esnek zaman aşımı
                 fragLoadingTimeOut: 20000,
