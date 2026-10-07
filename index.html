@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Bein Sports 1 - Geri Sarılabilir Sade Oynatıcı</title>
+    <title>Bein Sports 1 - Sade Oynatıcı</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { 
@@ -137,9 +137,94 @@
         var playBtn = document.getElementById('playBtn');
         var seekBar = document.getElementById('seekBar');
         var playerContainer = document.getElementById('playerContainer');
-        var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/f9aba2a0c046b78cedda92145f222969bb3fe9b81724124fb6cb1c0dcb86fe86/1791388261/bein1tr.m3u8';
+        
+        // Yeni eklediğin taze link
+        var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/06a2a7fc2004144c88af584dcdc1ff7547ce841f5ba9e1453d2eec06d211a69d/1791398417/bein1tr.m3u8';
 
         if (Hls.isSupported()) {
             var hlsConfig = {
                 // Yayını 50 saniye geriden başlat ve geniş tampon tut
-                liveSyncDuration: 
+                liveSyncDuration: 50,
+                liveMaxLatencyDuration: 120,
+                maxBufferLength: 180,
+                maxMaxBufferLength: 360,
+                fragLoadingTimeOut: 20000,
+                manifestLoadingTimeOut: 20000
+            };
+
+            var hls = new Hls(hlsConfig);
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(e => {
+                    video.muted = true;
+                    video.play();
+                });
+            });
+
+            // Zaman çubuğunu güncelle (Geriye sarma aralığını takip et)
+            video.addEventListener('timeupdate', function() {
+                if (video.duration) {
+                    var percent = (video.currentTime / video.duration) * 100;
+                    seekBar.value = percent;
+                }
+            });
+
+            // Çubuktan ileri/geri sarma işlemi
+            seekBar.addEventListener('input', function() {
+                if (video.duration) {
+                    var time = (seekBar.value / 100) * video.duration;
+                    video.currentTime = time;
+                }
+            });
+
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal) {
+                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                        hls.startLoad();
+                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                        hls.recoverMediaError();
+                    } else {
+                        hls.destroy();
+                    }
+                }
+            });
+        } 
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        }
+
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                playBtn.innerText = "Durdur";
+            } else {
+                video.pause();
+                playBtn.innerText = "Oynat";
+            }
+        }
+
+        // Canlı rozetine basınca en güncel ana geri döner
+        function goLive() {
+            if (video.buffered.length > 0) {
+                video.currentTime = video.buffered.end(video.buffered.length - 1);
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                playerContainer.requestFullscreen().catch(err => {
+                    console.log("Tam ekran hatası: ", err.message);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+
+</body>
+</html>
