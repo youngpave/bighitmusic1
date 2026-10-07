@@ -2,296 +2,591 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Bein Sports 1 - Sade Oynatıcı</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Canlı Yayın</title>
+
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
     <style>
-        body { 
-            margin: 0; 
-            background: #000; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
             font-family: Arial, sans-serif;
-            cursor: default;
+            overflow: hidden;
         }
-        body.hide-cursor {
-            cursor: none;
+
+        #playerContainer {
+            position: fixed;
+            inset: 0;
+            background: #000;
         }
-        .player-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
+
         video {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            background: #000;
         }
-        /* Minimalist Kontrol Paneli */
-        .custom-controls {
+
+        #controls {
             position: absolute;
-            bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-            padding: 20px;
+            bottom: 0;
+            padding: 10px;
+            background: linear-gradient(
+                transparent,
+                rgba(0,0,0,.85)
+            );
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 10px;
-            opacity: 1;
-            transition: opacity 0.4s ease;
-            z-index: 10;
         }
-        /* Gizleme sınıfı eklendiğinde tamamen kaybolacak */
-        .custom-controls.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        /* İlerleme (Geriye Sarma) Çubuğu */
-        .seek-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            cursor: pointer;
-            appearance: none;
-            outline: none;
-        }
-        .seek-bar::-webkit-slider-thumb {
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #ff3b30;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        .controls-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .left-group, .right-group {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .ctrl-btn {
+
+        button {
             background: none;
-            border: none;
-            color: #fff;
+            border: 0;
+            color: white;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 16px;
+        }
+
+        #seekBar {
+            flex: 1;
+        }
+
+        #liveBadge {
+            font-size: 12px;
             font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.2s;
         }
-        .ctrl-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        /* Ses Ayar Bölümü */
-        .volume-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .volume-bar {
-            width: 70px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            cursor: pointer;
-            appearance: none;
-            outline: none;
-        }
-        .volume-bar::-webkit-slider-thumb {
-            appearance: none;
-            width: 10px;
-            height: 10px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        .live-badge {
-            display: flex;
-            align-items: center;
-            color: #fff;
-            font-weight: bold;
-            font-size: 13px;
-            letter-spacing: 1px;
-            cursor: pointer;
-        }
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #ff3b30;
-            border-radius: 50%;
-            margin-right: 6px;
-            box-shadow: 0 0 6px #ff3b30;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+
+        input[type="range"] {
+            accent-color: red;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="player-container" id="playerContainer">
-        <video id="video" autoplay playsinline></video>
-        
-        <div class="custom-controls" id="controls">
-            <!-- Geriye sarma çubuğu -->
-            <input type="range" id="seekBar" class="seek-bar" value="0" max="100" step="0.1">
-            
-            <div class="controls-row">
-                <div class="left-group">
-                    <button class="ctrl-btn" id="playBtn" onclick="togglePlay()">Durdur</button>
-                    <div class="live-badge" onclick="goLive()" title="Canlıya dönmek için tıkla">
-                        <div class="live-dot"></div> CANLI
-                    </div>
-                </div>
-                <div class="right-group">
-                    <!-- Ses Kontrolleri -->
-                    <div class="volume-container">
-                        <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">Ses: Açık</button>
-                        <input type="range" id="volumeBar" class="volume-bar" value="1" max="1" step="0.05">
-                    </div>
-                    <button class="ctrl-btn" onclick="toggleFullscreen()">Tam Ekran</button>
-                </div>
-            </div>
-        </div>
+<div id="playerContainer">
+
+    <video
+        id="video"
+        autoplay
+        playsinline
+        controlslist="nodownload">
+    </video>
+
+    <div id="controls">
+
+        <button id="playBtn">▶</button>
+
+        <input
+            id="seekBar"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+            step="0.1">
+
+        <button id="muteBtn">🔊</button>
+
+        <input
+            id="volumeBar"
+            type="range"
+            min="0"
+            max="1"
+            value="1"
+            step="0.01">
+
+        <span id="liveBadge">LIVE -50s</span>
+
+        <button id="liveBtn">LIVE</button>
+
+        <button id="fullscreenBtn">⛶</button>
+
     </div>
+</div>
 
-    <script>
-        var video = document.getElementById('video');
-        var playBtn = document.getElementById('playBtn');
-        var muteBtn = document.getElementById('muteBtn');
-        var volumeBar = document.getElementById('volumeBar');
-        var seekBar = document.getElementById('seekBar');
-        var playerContainer = document.getElementById('playerContainer');
-        var controls = document.getElementById('controls');
-        
-        var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/06a2a7fc2004144c88af584dcdc1ff7547ce841f5ba9e1453d2eec06d211a69d/1791398417/bein1tr.m3u8';
+<script>
 
-        if (Hls.isSupported()) {
-            var hlsConfig = {
-                liveSyncDuration: 50,
-                liveMaxLatencyDuration: 120,
-                maxBufferLength: 180,
-                maxMaxBufferLength: 360,
-                fragLoadingTimeOut: 20000,
-                manifestLoadingTimeOut: 20000
-            };
+var video = document.getElementById("video");
 
-            var hls = new Hls(hlsConfig);
-            hls.loadSource(videoSrc);
-            hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(e => {
-                    video.muted = true;
-                    video.play();
-                    muteBtn.innerText = "Sessiz";
-                });
-            });
+var playBtn = document.getElementById("playBtn");
+var muteBtn = document.getElementById("muteBtn");
+var volumeBar = document.getElementById("volumeBar");
+var seekBar = document.getElementById("seekBar");
+var liveBtn = document.getElementById("liveBtn");
+var fullscreenBtn = document.getElementById("fullscreenBtn");
 
-            video.addEventListener('timeupdate', function() {
-                if (video.duration) {
-                    var percent = (video.currentTime / video.duration) * 100;
-                    seekBar.value = percent;
-                }
-            });
 
-            seekBar.addEventListener('input', function() {
-                if (video.duration) {
-                    var time = (seekBar.value / 100) * video.duration;
-                    video.currentTime = time;
-                }
-            });
+// ======================================================
+// AYARLAR
+// ======================================================
 
-            // Ses çubuğu ayarı
-            volumeBar.addEventListener('input', function() {
-                video.volume = volumeBar.value;
-                video.muted = (volumeBar.value == 0);
-                muteBtn.innerText = video.muted ? "Sessiz" : "Ses: Açık";
-            });
+var DELAY_FROM_LIVE = 50;
 
-            hls.on(Hls.Events.ERROR, function(event, data) {
-                if (data.fatal) {
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                        hls.startLoad();
-                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                        hls.recoverMediaError();
-                    } else {
-                        hls.destroy();
-                    }
-                }
-            });
-        } 
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = videoSrc;
-            video.addEventListener('loadedmetadata', function() {
-                video.play();
-            });
+
+// ======================================================
+// M3U8
+// ======================================================
+
+var videoSrc =
+'https://vix.ijekhaje.xyz/tflix/secure/06a2a7fc2004144c88af584dcdc1ff7547ce841f5ba9e1453d2eec06d211a69d/1791398417/bein1tr.m3u8';
+
+
+// ======================================================
+// HLS
+// ======================================================
+
+var hlsConfig = {
+
+    // HLS.js'in canlı konumu da yaklaşık 50 saniye geride
+    liveSyncDuration: 50,
+
+    // Fazla gecikmede toparlanmasına izin verilen sınır
+    liveMaxLatencyDuration: 120,
+
+    // Gereksiz aşırı buffer oluşmasını engelle
+    maxBufferLength: 60,
+    maxMaxBufferLength: 120,
+
+    fragLoadingTimeOut: 20000,
+    manifestLoadingTimeOut: 20000
+};
+
+
+var hls;
+
+
+// ======================================================
+// CANLI YAYIN KONUMU
+// ======================================================
+
+function getLiveEdge() {
+
+    if (!video.buffered.length) {
+        return null;
+    }
+
+    var last = video.buffered.length - 1;
+
+    return video.buffered.end(last);
+}
+
+
+function getBufferStart() {
+
+    if (!video.buffered.length) {
+        return null;
+    }
+
+    var last = video.buffered.length - 1;
+
+    return video.buffered.start(last);
+}
+
+
+// ======================================================
+// 50 SANİYE GERİYE GİT
+// ======================================================
+
+function go50SecondsBehind() {
+
+    if (!video.buffered.length) {
+        return false;
+    }
+
+    var last = video.buffered.length - 1;
+
+    var liveEdge = video.buffered.end(last);
+    var bufferStart = video.buffered.start(last);
+
+    var target = liveEdge - DELAY_FROM_LIVE;
+
+
+    // Eğer M3U8 50 saniye tutmuyorsa
+    // mevcut en eski noktaya git
+    if (target < bufferStart) {
+        target = bufferStart;
+    }
+
+
+    video.currentTime = target;
+
+    return true;
+}
+
+
+// ======================================================
+// YAYINI SÜREKLİ 50 SANİYE GERİDE TUT
+// ======================================================
+
+function keep50SecondsBehindLive() {
+
+    if (!video.buffered.length) {
+        return;
+    }
+
+    var last = video.buffered.length - 1;
+
+    var liveEdge = video.buffered.end(last);
+    var bufferStart = video.buffered.start(last);
+
+    var target = liveEdge - DELAY_FROM_LIVE;
+
+
+    // 50 saniyelik hedef buffer'ın dışındaysa
+    // mevcut başlangıç noktasını kullan
+    if (target < bufferStart) {
+        target = bufferStart;
+    }
+
+
+    var difference =
+        Math.abs(video.currentTime - target);
+
+
+    /*
+        Küçük farkları sürekli seek yaparak düzeltmiyoruz.
+
+        Örneğin:
+        hedef = 50 saniye geride
+        player = 48.5 saniye geride
+
+        Bu durumda dokunmuyoruz.
+
+        Ancak player ciddi şekilde canlıya yaklaşırsa
+        tekrar 50 saniye geriye alıyoruz.
+    */
+
+    if (difference > 5) {
+
+        video.currentTime = target;
+
+    }
+
+}
+
+
+// ======================================================
+// SEEK BAR
+// ======================================================
+
+function updateSeekBar() {
+
+    if (!video.buffered.length) {
+        return;
+    }
+
+    var last = video.buffered.length - 1;
+
+    var start = video.buffered.start(last);
+    var end = video.buffered.end(last);
+
+    var range = end - start;
+
+    if (range <= 0) {
+        return;
+    }
+
+    var position =
+        ((video.currentTime - start) / range) * 100;
+
+
+    seekBar.value =
+        Math.max(0, Math.min(100, position));
+}
+
+
+// ======================================================
+// SEEK BAR'A BASILDIĞINDA
+// ======================================================
+
+seekBar.addEventListener("input", function() {
+
+    if (!video.buffered.length) {
+        return;
+    }
+
+    var last = video.buffered.length - 1;
+
+    var start = video.buffered.start(last);
+    var end = video.buffered.end(last);
+
+    var range = end - start;
+
+    var newTime =
+        start + (seekBar.value / 100) * range;
+
+    video.currentTime = newTime;
+
+});
+
+
+// ======================================================
+// PLAY / PAUSE
+// ======================================================
+
+playBtn.addEventListener("click", function() {
+
+    if (video.paused) {
+
+        video.play();
+
+        playBtn.innerText = "❚❚";
+
+    } else {
+
+        video.pause();
+
+        playBtn.innerText = "▶";
+
+    }
+
+});
+
+
+// ======================================================
+// SES
+// ======================================================
+
+volumeBar.addEventListener("input", function() {
+
+    video.volume = volumeBar.value;
+
+    if (video.volume === 0) {
+
+        video.muted = true;
+        muteBtn.innerText = "🔇";
+
+    } else {
+
+        video.muted = false;
+        muteBtn.innerText = "🔊";
+
+    }
+
+});
+
+
+muteBtn.addEventListener("click", function() {
+
+    video.muted = !video.muted;
+
+    if (video.muted) {
+
+        muteBtn.innerText = "🔇";
+
+    } else {
+
+        muteBtn.innerText = "🔊";
+
+    }
+
+});
+
+
+// ======================================================
+// LIVE BUTONU
+// ======================================================
+
+liveBtn.addEventListener("click", function() {
+
+    go50SecondsBehind();
+
+});
+
+
+// ======================================================
+// FULLSCREEN
+// ======================================================
+
+fullscreenBtn.addEventListener("click", function() {
+
+    if (!document.fullscreenElement) {
+
+        if (video.requestFullscreen) {
+
+            video.requestFullscreen();
+
+        } else if (document.documentElement.requestFullscreen) {
+
+            document.documentElement.requestFullscreen();
+
         }
 
-        function togglePlay() {
-            if (video.paused) {
-                video.play();
-                playBtn.innerText = "Durdur";
-            } else {
-                video.pause();
-                playBtn.innerText = "Oynat";
-            }
+    } else {
+
+        document.exitFullscreen();
+
+    }
+
+});
+
+
+// ======================================================
+// TIME UPDATE
+// ======================================================
+
+video.addEventListener("timeupdate", function() {
+
+    updateSeekBar();
+
+});
+
+
+// ======================================================
+// HLS BAŞLAT
+// ======================================================
+
+if (Hls.isSupported()) {
+
+    hls = new Hls(hlsConfig);
+
+    hls.loadSource(videoSrc);
+
+    hls.attachMedia(video);
+
+
+    // --------------------------------------------------
+    // MANIFEST HAZIR
+    // --------------------------------------------------
+
+    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+
+        video.play()
+            .then(function() {
+
+                playBtn.innerText = "❚❚";
+
+            })
+            .catch(function() {
+
+                // Mobil tarayıcı autoplay engellerse
+                video.muted = true;
+
+                muteBtn.innerText = "🔇";
+
+                video.play()
+                    .then(function() {
+
+                        playBtn.innerText = "❚❚";
+
+                    })
+                    .catch(function() {});
+
+            });
+
+    });
+
+
+    // --------------------------------------------------
+    // VIDEO OYNATMAYA HAZIR OLDUĞUNDA
+    // 50 SANİYE GERİYE AL
+    // --------------------------------------------------
+
+    video.addEventListener("canplay", function() {
+
+        /*
+            Birkaç kez denemek önemli.
+            MANIFEST_PARSED geldiğinde buffer henüz
+            yeterince dolmamış olabilir.
+        */
+
+        setTimeout(function() {
+
+            go50SecondsBehind();
+
+        }, 500);
+
+    }, { once: true });
+
+
+    // --------------------------------------------------
+    // HLS HATALARI
+    // --------------------------------------------------
+
+    hls.on(Hls.Events.ERROR, function(event, data) {
+
+        if (!data.fatal) {
+            return;
         }
 
-        function toggleMute() {
-            video.muted = !video.muted;
-            if (video.muted) {
-                muteBtn.innerText = "Sessiz";
-                volumeBar.value = 0;
-            } else {
-                muteBtn.innerText = "Ses: Açık";
-                volumeBar.value = video.volume > 0 ? video.volume : 1;
-            }
+
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+
+            console.log("Network error - yeniden yükleniyor...");
+
+            hls.startLoad();
+
         }
 
-        function goLive() {
-            if (video.buffered.length > 0) {
-                video.currentTime = video.buffered.end(video.buffered.length - 1);
-            }
+        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+
+            console.log("Media error - kurtarılıyor...");
+
+            hls.recoverMediaError();
+
         }
 
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                playerContainer.requestFullscreen().catch(err => {
-                    console.log("Tam ekran hatası: ", err.message);
-                });
-            } else {
-                document.exitFullscreen();
-            }
+        else {
+
+            console.log("Fatal HLS error");
+
+            hls.destroy();
+
         }
 
-        // Fare hareketine göre paneli gizleme/gösterme mantığı
-        let hideTimeout;
-        playerContainer.addEventListener('mousemove', function() {
-            controls.classList.remove('hidden');
-            document.body.classList.remove('hide-cursor');
-            
-            clearTimeout(hideTimeout);
-            hideTimeout = setTimeout(() => {
-                if (!video.paused) {
-                    controls.classList.add('hidden');
-                    document.body.classList.add('hide-cursor');
-                }
-            }, 2000);
-        });
-    </script>
+    });
+
+}
+
+
+// ======================================================
+// SAFARI / NATIVE HLS
+// ======================================================
+
+else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+
+    video.src = videoSrc;
+
+    video.addEventListener("loadedmetadata", function() {
+
+        video.play()
+            .catch(function() {
+
+                video.muted = true;
+
+                muteBtn.innerText = "🔇";
+
+                video.play().catch(function(){});
+
+            });
+
+    });
+
+}
+
+
+// ======================================================
+// HER 2 SANİYEDE 50 SANİYELİK GECİKMEYİ KONTROL ET
+// ======================================================
+
+setInterval(function() {
+
+    keep50SecondsBehindLive();
+
+}, 2000);
+
+
+</script>
 
 </body>
 </html>
