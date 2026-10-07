@@ -1,1 +1,59 @@
-<iframe src="https://kodamantv21.com/channel?id=ex5" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bein Sports 1 - M3U8 Oynatıcı</title>
+    <!-- Hls.js Kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        video {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <video id="video" controls autoplay playsinline></video>
+
+    <script>
+        var video = document.getElementById('video');
+        var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/5e8975608208b7989075ae6d7c460a63d40fcb18273b73c512f36dc2f1ab9903/1791378933/bein1tr.m3u8';
+
+        if (Hls.isSupported()) {
+            // Donmaları törpülemek ve akışı optimize etmek için tampon ayarları
+            var hlsConfig = {
+                maxBufferLength: 60,          // Saniye cinsinden maksimum önbellek
+                maxMaxBufferLength: 300,
+                liveSyncDurationCount: 3,     
+                liveMaxLatencyDurationCount: 10,
+                xhrSetup: function (xhr, url) {
+                    // Gerekirse özel Header veya CORS aşımı için eklenebilir
+                    xhr.withCredentials = false;
+                }
+            };
+
+            var hls = new Hls(hlsConfig);
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(e => {
+                    console.log("Otomatik oynatma engellendi, ses kısık denenebilir.");
+                    video.muted = true;
+                    video.play();
+                });
+            });
+            
+            // Sunucu kaynaklı kopmalarda otomatik yeniden bağlanma
+            hls
