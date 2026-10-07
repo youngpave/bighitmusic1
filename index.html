@@ -44,12 +44,10 @@
             transition: opacity 0.4s ease;
             z-index: 10;
         }
-        /* Gizleme sınıfı eklendiğinde tamamen kaybolacak */
         .custom-controls.hidden {
             opacity: 0;
             pointer-events: none;
         }
-        /* İlerleme (Geriye Sarma) Çubuğu */
         .seek-bar {
             width: 100%;
             height: 6px;
@@ -91,7 +89,6 @@
         .ctrl-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        /* Ses Ayar Bölümü */
         .volume-container {
             display: flex;
             align-items: center;
@@ -145,18 +142,16 @@
         <video id="video" autoplay playsinline></video>
         
         <div class="custom-controls" id="controls">
-            <!-- Geriye sarma çubuğu -->
             <input type="range" id="seekBar" class="seek-bar" value="0" max="100" step="0.1">
             
             <div class="controls-row">
                 <div class="left-group">
                     <button class="ctrl-btn" id="playBtn" onclick="togglePlay()">Durdur</button>
-                    <div class="live-badge" onclick="go50SecondsBehind()" title="50 saniye geriye dönmek için tıkla">
+                    <div class="live-badge" onclick="go50SecondsBehind()" title="Canlı akışa (-50s) sabitle">
                         <div class="live-dot"></div> CANLI (-50s)
                     </div>
                 </div>
                 <div class="right-group">
-                    <!-- Ses Kontrolleri -->
                     <div class="volume-container">
                         <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">Ses: Açık</button>
                         <input type="range" id="volumeBar" class="volume-bar" value="1" max="1" step="0.05">
@@ -178,11 +173,12 @@
         
         var videoSrc = 'https://vix.ijekhaje.xyz/tflix/secure/06a2a7fc2004144c88af584dcdc1ff7547ce841f5ba9e1453d2eec06d211a69d/1791398417/bein1tr.m3u8';
         var DELAY_FROM_LIVE = 50;
+        var isUserSeeking = false; // Kullanıcının manuel müdahalesini takip etmek için
 
         if (Hls.isSupported()) {
             var hlsConfig = {
-                liveSyncDuration: 50,
-                liveMaxLatencyDuration: 120,
+                liveSyncDuration: 50,          // Canlı akışa 50 saniye mesafede senkronize ol
+                liveMaxLatencyDuration: 120,   // Maksimum gecikme sınırı
                 maxBufferLength: 180,
                 maxMaxBufferLength: 360,
                 fragLoadingTimeOut: 20000,
@@ -201,12 +197,28 @@
                 });
             });
 
-            // İlk açılışta 50 saniye geriden başlat
+            // İlk açılışta 50 sn geriden başlat ve hls'ye bildir
             video.addEventListener('canplay', function() {
                 setTimeout(function() {
                     go50SecondsBehind();
                 }, 500);
             }, { once: true });
+
+            // Düzenli aralıklarla (örneğin her 3 saniyede bir) eğer kullanıcı elle sarma yapmadıysa
+            // canlı kenarının 50 saniye gerisinde kalıp kalmadığını kontrol et ve hafifçe senkronize et
+            setInterval(function() {
+                if (!isUserSeeking && !video.paused && video.buffered.length > 0) {
+                    var last = video.buffered.length - 1;
+                    var liveEdge = video.buffered.end(last);
+                    var target = liveEdge - DELAY_FROM_LIVE;
+                    
+                    // Eğer yayın normal akışından çok fazla sapmışsa (örneğin 5 saniyeden fazla kaydıysa)
+                    // akışı bozmadan yumuşakça ideal 50 sn geriye sabitle
+                    if (Math.abs(video.currentTime - target) > 5) {
+                        video.currentTime = target;
+                    }
+                }
+            }, 3000);
 
             video.addEventListener('timeupdate', function() {
                 if (video.buffered.length > 0) {
@@ -220,6 +232,10 @@
                 }
             });
 
+            // Kullanıcı çubukla oynadığında manuel müdahaleyi aktif et
+            seekBar.addEventListener('mousedown', function() { isUserSeeking = true; });
+            seekBar.addEventListener('touchstart', function() { isUserSeeking = true; });
+
             seekBar.addEventListener('input', function() {
                 if (video.buffered.length > 0) {
                     var start = video.buffered.start(video.buffered.length - 1);
@@ -230,7 +246,12 @@
                 }
             });
 
-            // Ses çubuğu ayarı
+            // Bıraktıktan kısa süre sonra otomatik sabitlemeyi tekrar serbest bırakabilirsiniz 
+            // ya da kullanıcı tamamen "CANLI (-50s)" butonuna basana kadar manuel modda tutabilirsiniz.
+            seekBar.addEventListener('mouseup', function() { 
+                setTimeout(() => { isUserSeeking = false; }, 10000); 
+            });
+
             volumeBar.addEventListener('input', function() {
                 video.volume = volumeBar.value;
                 video.muted = (volumeBar.value == 0);
@@ -283,6 +304,7 @@
         }
 
         function go50SecondsBehind() {
+            isUserSeeking = false; // Manuel kilidi kaldır, tekrar 50s geriye sabitle
             if (video.buffered.length > 0) {
                 var last = video.buffered.length - 1;
                 var liveEdge = video.buffered.end(last);
@@ -306,7 +328,6 @@
             }
         }
 
-        // Fare hareketine göre paneli gizleme/gösterme mantığı
         let hideTimeout;
         playerContainer.addEventListener('mousemove', function() {
             controls.classList.remove('hidden');
