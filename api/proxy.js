@@ -1,20 +1,19 @@
 export default async function handler(req, res) {
-  const targetUrl = "https://trend48.st/live-tv?ch=beinsports1-tr";
+  // Ham m3u8 yayın adresimiz
+  const targetUrl = "https://justkidding.junksonus.party/main/secure/3b0c6167e9a2d4d714940d0a53a431387f41d7f38f1f70da729869f28fe23514/1791443296/beinsports1-tr.m3u8";
 
   try {
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: {
-        "Host": "trend48.st",
-        "Referer": "https://trend48.st/live-tv?ch=beinsports1-tr",
+        "Referer": "https://trend48.st/",
         "Origin": "https://trend48.st",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.9"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
       },
     });
 
-    const contentType = response.headers.get("content-type") || "text/html";
+    // M3U8 veya ts parçaları için içerik türünü (content-type) doğru yansıtıyoruz
+    const contentType = response.headers.get("content-type") || "application/vnd.apple.mpegurl";
     res.setHeader("Content-Type", contentType);
     
     res.setHeader("Access-Control-Allow-Origin", "*");
