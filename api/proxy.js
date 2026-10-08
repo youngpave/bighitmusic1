@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Doğrudan trend48 üzerinden akış isteğini yönlendiriyoruz
   const targetUrl = "https://trend48.st/live-tv?ch=beinsports1-tr";
 
   try {
@@ -23,7 +22,7 @@ export default async function handler(req, res) {
     const data = await response.text();
     return res.status(response.status).send(data);
 
-  } (error) {
+  } catch (error) {
     return res.status(500).json({ error: "Proxy Hata: " + error.message });
   }
 }
