@@ -1,1 +1,65 @@
-<iframe src="https://kodamantv21.com/channel?id=zirve" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaçTV Oynatıcı</title>
+    <!-- Hls.js Kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Videoyu oranını bozmadan ekrana sığdırır */
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <video id="videoPlayer" controls autoplay playsinline></video>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var video = document.getElementById('videoPlayer');
+            var videoSrc = "https://7jep2q6xee5pjrv.fu8oefd4v2dvlmaarur6crfp.com/sunshine/QnYS0VJXJgzQ5arIS8Ow8N192Yxp1hn7MyWWCT3ioHuqCEpEM2KSuxjPKM50x4H88Rl8ttkLdRJVkETNiJDkICzdYHkeKcOCJijeGPVI_9nDieSt1GamdjAwbNZnXlVt-KfXd2dQicn-83GeAfSRMqJJzRDnX0uD7_tm7qD3M3r7wQfVxRtvbtI8YeXWTPtiCEQm0Pd0Cl9kFBPxw8UG8Qj_iIxAwa1rDaTUMI6ks_GmOP3cIgsKfPZE1CRcaUa9/hls/index.m3u8";
+
+            if (Hls.isSupported()) {
+                var hls = new Hls({
+                    // Akış kopmalarını önlemek için tampon ve kurtarma ayarları
+                    maxBufferLength: 30,
+                    liveSyncDurationCount: 3
+                });
+                hls.loadSource(videoSrc);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(error => {
+                        console.log("Otomatik oynatma tarayıcı tarafından engellendi:", error);
+                    });
+                });
+            } 
+            // Safari gibi yerel HLS desteği olan tarayıcılar için
+            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = videoSrc;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play().catch(error => {
+                        console.log("Otomatik oynatma engellendi:", error);
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
