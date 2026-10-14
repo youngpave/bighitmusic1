@@ -10,36 +10,41 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        #adminControls {
-            display: none; position: absolute; top: 20px; left: 20px; z-index: 1000;
-            background: rgba(15, 15, 15, 0.95); padding: 15px; border-radius: 8px; border: 1px solid #333;
+        
+        /* Kontrol ve Bilgi Paneli */
+        #panel {
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            background: rgba(15, 15, 15, 0.95); padding: 15px 20px; border-radius: 8px; border: 1px solid #333;
+            max-width: 320px;
         }
-        button { background: #e50914; color: #fff; border: none; padding: 10px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        #status { margin-top: 8px; font-size: 12px; color: #aaa; }
+        button { background: #e50914; color: #fff; border: none; padding: 10px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background: #b80710; }
+        #status { margin-top: 10px; font-size: 13px; color: #ffcc00; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-    <div id="adminControls">
-        <button id="startBtn">Yayını Başlat (Sekme Seç)</button>
-        <div id="status">Bekleniyor...</div>
+    <div id="panel">
+        <div id="modeTitle" style="font-weight: bold; font-size: 14px; color: #fff;">Sistem Yükleniyor...</div>
+        <div id="status">Bağlantı kuruluyor, lütfen bekleyin...</div>
+        <button id="actionBtn" style="display: none;">Yayını Başlat</button>
     </div>
 
     <video id="remoteVideo" autoplay playsinline controls></video>
 
     <script>
-        // Herkesin bağlanacağı sabit ve benzersiz oda ID'si
-        const ROOM_ID = "vavoo-ozel-yayin-kanal-2026";
+        // Sabit Oda Adı
+        const ROOM_ID = "vavoo-ozel-yayin-oda-9991";
         
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === '1';
 
         const videoEl = document.getElementById('remoteVideo');
-        const adminControls = document.getElementById('adminControls');
-        const startBtn = document.getElementById('startBtn');
+        const modeTitle = document.getElementById('modeTitle');
         const statusDiv = document.getElementById('status');
+        const actionBtn = document.getElementById('actionBtn');
 
-        // Güçlü STUN sunucuları (Ağ engellerini aşmak için şart)
+        // Güçlü STUN Sunucuları
         const peerConfig = {
             config: {
                 iceServers: [
@@ -50,32 +55,45 @@
         };
 
         if (isAdmin) {
-            adminControls.style.display = 'block';
-            let peer = new Peer(ROOM_ID, peerConfig);
+            modeTitle.innerText = "YAYINCI (ADMIN) PANELİ";
+            let peer = null;
             let localStream = null;
 
-            peer.on('open', () => {
-                statusDiv.innerText = "Yayın odası açıldı. Butona basabilirsiniz.";
-            });
+            function initAdmin() {
+                statusDiv.innerText = "Sunucuya bağlanılıyor...";
+                peer = new Peer(ROOM_ID, peerConfig);
 
-            peer.on('error', (err) => {
-                if (err.type === 'unavailable-id') {
-                    statusDiv.innerText = "Hata: Bu oda zaten açık başka sekme kapatın.";
-                } else {
-                    statusDiv.innerText = "Hata: " + err.type;
-                }
-            });
+                peer.on('open', () => {
+                    statusDiv.innerText = "Oda açıldı! Şimdi 'Yayını Başlat' butonuna basıp sekmeni seç.";
+                    actionBtn.style.display = 'block';
+                });
 
-            peer.on('call', (call) => {
-                if (localStream) {
-                    call.answer(localStream);
-                    statusDiv.innerText = "YAYINDA: İzleyici bağlandı!";
-                } else {
-                    call.answer();
-                }
-            });
+                peer.on('error', (err) => {
+                    if (err.type === 'unavailable-id') {
+                        statusDiv.innerText = "Oda kilitli! Eski sekmeler kapanıyor, 3 saniye içinde tekrar deneniyor...";
+                        setTimeout(() => {
+                            peer.destroy();
+                            initAdmin();
+                        }, 3000);
+                    } else {
+                        statusDiv.innerText = "Hata: " + err.type;
+                    }
+                });
 
-            startBtn.addEventListener('click', async () => {
+                peer.on('call', (call) => {
+                    if (localStream) {
+                        call.answer(localStream);
+                        statusDiv.innerText = "YAYINDA: İzleyici bağlandı ve akış aktarılıyor!";
+                    } else {
+                        call.answer();
+                        statusDiv.innerText = "İzleyici bağlandı ancak henüz yayın başlatılmamış!";
+                    }
+                });
+            }
+
+            initAdmin();
+
+            actionBtn.addEventListener('click', async () => {
                 try {
                     localStream = await navigator.mediaDevices.getDisplayMedia({
                         video: { cursor: "always", frameRate: 30 },
@@ -83,12 +101,14 @@
                     });
 
                     videoEl.srcObject = localStream;
-                    statusDiv.innerText = "YAYINDA: İzleyiciler bekleniyor...";
+                    statusDiv.innerText = "YAYINDA: Sekme paylaşıldı. İzleyiciler bekleniyor...";
+                    actionBtn.innerText = "Yayını Durdur";
 
                     localStream.getVideoTracks()[0].onended = () => {
                         statusDiv.innerText = "Yayın sonlandırıldı.";
                         videoEl.srcObject = null;
                         localStream = null;
+                        actionBtn.innerText = "Yayını Başlat";
                     };
                 } catch (e) {
                     statusDiv.innerText = "Paylaşım iptal edildi.";
@@ -96,20 +116,28 @@
             });
 
         } else {
-            // İzleyici Tarafı
+            // İZLEYİCİ TARAFI
+            modeTitle.innerText = "İZLEYİCİ EKRANI";
             let peer = new Peer(peerConfig);
 
             function connectToStream() {
-                statusDiv.innerText = "Yayına bağlanmaya çalışılıyor...";
+                statusDiv.innerText = "Yayın aranıyor... (Yayıncı henüz açmamış olabilir)";
+                
                 const call = peer.call(ROOM_ID, new MediaStream());
 
                 call.on('stream', (stream) => {
+                    statusDiv.innerText = "Bağlantı başarılı! Yayın oynatılıyor...";
                     videoEl.srcObject = stream;
                     videoEl.play().catch(() => {});
                 });
 
                 call.on('close', () => {
-                    setTimeout(connectToStream, 3000); // Koptuğunda tekrar dene
+                    statusDiv.innerText = "Yayın kapandı, yeniden bağlanılıyor...";
+                    setTimeout(connectToStream, 3000);
+                });
+
+                call.on('error', () => {
+                    setTimeout(connectToStream, 4000);
                 });
             }
 
@@ -117,8 +145,9 @@
                 connectToStream();
             });
 
-            peer.on('error', () => {
-                setTimeout(connectToStream, 3000);
+            peer.on('error', (err) => {
+                statusDiv.innerText = "Bağlantı hatası: Tekrar deneniyor...";
+                setTimeout(connectToStream, 4000);
             });
         }
     </script>
