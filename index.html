@@ -1,155 +1,286 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canlı Yayın Sistemi</title>
-    <!-- PeerJS Kütüphanesi -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        
-        /* Kontrol ve Bilgi Paneli */
-        #panel {
-            position: absolute; top: 20px; left: 20px; z-index: 1000;
-            background: rgba(15, 15, 15, 0.95); padding: 15px 20px; border-radius: 8px; border: 1px solid #333;
-            max-width: 320px;
-        }
-        button { background: #e50914; color: #fff; border: none; padding: 10px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
-        button:hover { background: #b80710; }
-        #status { margin-top: 10px; font-size: 13px; color: #ffcc00; line-height: 1.4; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canlı Yayın Sistemi</title>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-family: sans-serif;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+#panel {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 10;
+    width: min(320px, calc(100% - 30px));
+    background: rgba(15, 15, 15, .94);
+    padding: 15px;
+    border: 1px solid #444;
+    border-radius: 8px;
+}
+
+#modeTitle { font-weight: bold; font-size: 14px; }
+#status { margin-top: 10px; font-size: 13px; color: #ffcc00; line-height: 1.5; }
+
+button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 11px;
+    border: 0;
+    border-radius: 4px;
+    background: #e50914;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="panel">
-        <div id="modeTitle" style="font-weight: bold; font-size: 14px; color: #fff;">Sistem Yükleniyor...</div>
-        <div id="status">Bağlantı kuruluyor, lütfen bekleyin...</div>
-        <button id="actionBtn" style="display: none;">Yayını Başlat</button>
-    </div>
+<div id="panel">
+    <div id="modeTitle">Sistem yükleniyor...</div>
+    <div id="status">Bağlantı kuruluyor...</div>
+    <button id="actionBtn" hidden>Yayını Başlat</button>
+</div>
 
-    <video id="remoteVideo" autoplay playsinline controls></video>
+<video id="remoteVideo" autoplay playsinline controls></video>
 
-    <script>
-        // Sabit Oda Adı
-        const ROOM_ID = "vavoo-ozel-yayin-oda-9991";
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdmin = urlParams.get('admin') === '1';
+<script>
+const ROOM_ID = "vavoo-ozel-yayin-oda-9991";
 
-        const videoEl = document.getElementById('remoteVideo');
-        const modeTitle = document.getElementById('modeTitle');
-        const statusDiv = document.getElementById('status');
-        const actionBtn = document.getElementById('actionBtn');
+const isAdmin =
+    new URLSearchParams(location.search).get("admin") === "1";
 
-        // Güçlü STUN Sunucuları
-        const peerConfig = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478' }
-                ]
+const video = document.getElementById("remoteVideo");
+const title = document.getElementById("modeTitle");
+const status = document.getElementById("status");
+const button = document.getElementById("actionBtn");
+
+const peerOptions = {
+    debug: 1,
+    config: {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:global.stun.twilio.com:3478" }
+        ]
+    }
+};
+
+let peer;
+let localStream = null;
+let currentCall = null;
+let connecting = false;
+let retryTimer = null;
+
+function setStatus(message) {
+    status.textContent = message;
+}
+
+function createPeer(id) {
+    return new Promise((resolve, reject) => {
+        const p = new Peer(id, peerOptions);
+
+        p.on("open", () => resolve(p));
+        p.on("error", reject);
+    });
+}
+
+// ==============================
+// YAYINCI
+// ==============================
+
+async function startAdmin() {
+    title.textContent = "YAYINCI PANELİ";
+    setStatus("Oda bağlantısı kuruluyor...");
+
+    try {
+        peer = await createPeer(ROOM_ID);
+
+        setStatus("Oda hazır. Yayını başlatabilirsin.");
+        button.hidden = false;
+
+        peer.on("call", call => {
+            if (!localStream) {
+                call.answer();
+                setStatus("İzleyici bağlandı. Önce yayını başlat.");
+                return;
             }
-        };
 
-        if (isAdmin) {
-            modeTitle.innerText = "YAYINCI (ADMIN) PANELİ";
-            let peer = null;
-            let localStream = null;
+            call.answer(localStream);
+            setStatus("İzleyici bağlandı, akış gönderiliyor.");
 
-            function initAdmin() {
-                statusDiv.innerText = "Sunucuya bağlanılıyor...";
-                peer = new Peer(ROOM_ID, peerConfig);
+            call.on("close", () => {
+                setStatus("İzleyici bağlantısı kapandı.");
+            });
 
-                peer.on('open', () => {
-                    statusDiv.innerText = "Oda açıldı! Şimdi 'Yayını Başlat' butonuna basıp sekmeni seç.";
-                    actionBtn.style.display = 'block';
-                });
+            call.on("error", err => {
+                setStatus("Bağlantı hatası: " + err.type);
+            });
+        });
 
-                peer.on('error', (err) => {
-                    if (err.type === 'unavailable-id') {
-                        statusDiv.innerText = "Oda kilitli! Eski sekmeler kapanıyor, 3 saniye içinde tekrar deneniyor...";
-                        setTimeout(() => {
-                            peer.destroy();
-                            initAdmin();
-                        }, 3000);
-                    } else {
-                        statusDiv.innerText = "Hata: " + err.type;
-                    }
-                });
+    } catch (err) {
+        setStatus(
+            err.type === "unavailable-id"
+                ? "Oda zaten açık. Aynı oda için ikinci bir yayıncı başlatma."
+                : "Yayıncı bağlantı hatası: " + err.message
+        );
+    }
+}
 
-                peer.on('call', (call) => {
-                    if (localStream) {
-                        call.answer(localStream);
-                        statusDiv.innerText = "YAYINDA: İzleyici bağlandı ve akış aktarılıyor!";
-                    } else {
-                        call.answer();
-                        statusDiv.innerText = "İzleyici bağlandı ancak henüz yayın başlatılmamış!";
-                    }
-                });
+if (isAdmin) {
+    startAdmin();
+
+    button.addEventListener("click", async () => {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+            video.srcObject = null;
+            button.textContent = "Yayını Başlat";
+            setStatus("Yayın durduruldu.");
+            return;
+        }
+
+        try {
+            localStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { frameRate: 30 },
+                audio: true
+            });
+
+            video.srcObject = localStream;
+            await video.play().catch(() => {});
+
+            button.textContent = "Yayını Durdur";
+            setStatus("Yayın açık. İzleyiciler bağlanabilir.");
+
+            localStream.getTracks()[0].addEventListener("ended", () => {
+                localStream = null;
+                video.srcObject = null;
+                button.textContent = "Yayını Başlat";
+                setStatus("Ekran paylaşımı sona erdi.");
+            });
+
+        } catch (err) {
+            setStatus("Ekran paylaşımı başlatılamadı: " + err.message);
+        }
+    });
+
+} else {
+
+// ==============================
+// İZLEYİCİ
+// ==============================
+
+    title.textContent = "İZLEYİCİ EKRANI";
+
+    async function startViewer() {
+        if (connecting) return;
+        connecting = true;
+
+        try {
+            if (!peer || peer.destroyed) {
+                peer = await createPeer();
             }
 
-            initAdmin();
+            setStatus("Yayıncı aranıyor...");
 
-            actionBtn.addEventListener('click', async () => {
+            // Yayıncıya medya göndermeden çağrı başlat.
+            // Yayıncı call olayında kendi ekran akışını yanıt olarak gönderir.
+            const call = peer.call(ROOM_ID, new MediaStream());
+
+            if (!call) {
+                throw new Error("Çağrı başlatılamadı.");
+            }
+
+            currentCall = call;
+
+            call.on("stream", async stream => {
+                video.srcObject = stream;
+
                 try {
-                    localStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: { cursor: "always", frameRate: 30 },
-                        audio: true
-                    });
-
-                    videoEl.srcObject = localStream;
-                    statusDiv.innerText = "YAYINDA: Sekme paylaşıldı. İzleyiciler bekleniyor...";
-                    actionBtn.innerText = "Yayını Durdur";
-
-                    localStream.getVideoTracks()[0].onended = () => {
-                        statusDiv.innerText = "Yayın sonlandırıldı.";
-                        videoEl.srcObject = null;
-                        localStream = null;
-                        actionBtn.innerText = "Yayını Başlat";
-                    };
-                } catch (e) {
-                    statusDiv.innerText = "Paylaşım iptal edildi.";
+                    await video.play();
+                    setStatus("Bağlandı. Yayın oynatılıyor.");
+                } catch (err) {
+                    setStatus("Akış geldi; oynatmak için video üzerindeki oynat düğmesine bas.");
                 }
             });
 
-        } else {
-            // İZLEYİCİ TARAFI
-            modeTitle.innerText = "İZLEYİCİ EKRANI";
-            let peer = new Peer(peerConfig);
-
-            function connectToStream() {
-                statusDiv.innerText = "Yayın aranıyor... (Yayıncı henüz açmamış olabilir)";
-                
-                const call = peer.call(ROOM_ID, new MediaStream());
-
-                call.on('stream', (stream) => {
-                    statusDiv.innerText = "Bağlantı başarılı! Yayın oynatılıyor...";
-                    videoEl.srcObject = stream;
-                    videoEl.play().catch(() => {});
-                });
-
-                call.on('close', () => {
-                    statusDiv.innerText = "Yayın kapandı, yeniden bağlanılıyor...";
-                    setTimeout(connectToStream, 3000);
-                });
-
-                call.on('error', () => {
-                    setTimeout(connectToStream, 4000);
-                });
-            }
-
-            peer.on('open', () => {
-                connectToStream();
+            call.on("close", () => {
+                video.srcObject = null;
+                currentCall = null;
+                connecting = false;
+                setStatus("Bağlantı kapandı. Yeniden deneniyor...");
+                scheduleRetry();
             });
 
-            peer.on('error', (err) => {
-                statusDiv.innerText = "Bağlantı hatası: Tekrar deneniyor...";
-                setTimeout(connectToStream, 4000);
+            call.on("error", err => {
+                video.srcObject = null;
+                currentCall = null;
+                connecting = false;
+                setStatus("Çağrı hatası: " + err.message);
+                scheduleRetry();
             });
+
+            // Bağlantının başarısız olup olmadığını izlemek için
+            // birkaç saniye sonra kontrol et.
+            setTimeout(() => {
+                if (currentCall === call && !video.srcObject) {
+                    setStatus("Henüz video gelmedi. Ağ veya TURN bağlantısı gerekebilir.");
+                }
+            }, 10000);
+
+        } catch (err) {
+            setStatus("Bağlantı kurulamadı: " + err.message);
+            connecting = false;
+            scheduleRetry();
         }
-    </script>
+    }
+
+    function scheduleRetry() {
+        if (retryTimer) return;
+
+        retryTimer = setTimeout(() => {
+            retryTimer = null;
+            connecting = false;
+            startViewer();
+        }, 5000);
+    }
+
+    createPeer()
+        .then(p => {
+            peer = p;
+            startViewer();
+        })
+        .catch(err => {
+            setStatus("Peer bağlantı hatası: " + err.message);
+            scheduleRetry();
+        });
+}
+</script>
+
 </body>
 </html>
