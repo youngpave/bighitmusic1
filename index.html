@@ -33,11 +33,11 @@
             top: 20px;
             left: 20px;
             z-index: 1000;
-            background: rgba(20, 20, 20, 0.9);
+            background: rgba(20, 20, 20, 0.95);
             padding: 15px 20px;
             border-radius: 10px;
-            border: 1px solid #333;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
         }
         button {
             background: #e50914;
@@ -56,7 +56,7 @@
         #status {
             margin-top: 10px;
             font-size: 13px;
-            color: #aaa;
+            color: #ccc;
         }
     </style>
 </head>
@@ -65,15 +65,15 @@
     <!-- Admin Paneli (Sadece ?admin=1 ile açıldığında görünür) -->
     <div id="adminControls">
         <button id="startScreenBtn">Canlı Yayın Başlat (Sekme Seç)</button>
-        <div id="status">Admin Modu: Bekleniyor...</div>
+        <div id="status">Admin: Hazırlanıyor...</div>
     </div>
 
     <!-- Yayın Görüntüleme Alanı -->
     <video id="remoteVideo" autoplay playsinline controls></video>
 
     <script>
-        // Sabit Oda Adı (Kendi odanı belirleyebilirsin)
-        const ADMIN_PEER_ID = "xstream-özel-yayin-odasi-2026";
+        // Benzersiz Oda ID (İstediğin gibi değiştirebilirsin)
+        const ADMIN_PEER_ID = "vavoo-canli-yayin-oda-7788";
 
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === '1';
@@ -84,21 +84,27 @@
         const statusDiv = document.getElementById('status');
 
         if (isAdmin) {
-            // --- YAYINCI (ADMIN) TARAFI ---
+            // ==========================================
+            // YAYINCI (ADMIN) TARAFI
+            // ==========================================
             adminControls.style.display = 'block';
             
-            const peer = new Peer(ADMIN_PEER_ID);
+            let peer = new Peer(ADMIN_PEER_ID);
+            let localStream = null;
 
             peer.on('open', (id) => {
                 statusDiv.innerText = "Bağlantı hazır. Butona basıp yayın akışını seçin.";
             });
 
-            let localStream = null;
+            peer.on('error', (err) => {
+                statusDiv.innerText = "Hata: " + err.type;
+            });
 
-            // İzleyici bağlandığında yayını aktar
+            // İzleyici bağlandığında (arama yaptığında) kendi ekran akışımızı gönderiyoruz
             peer.on('call', (call) => {
                 if (localStream) {
                     call.answer(localStream);
+                    statusDiv.innerText = "YAYINDA: Bir izleyici bağlandı!";
                 } else {
                     call.answer();
                 }
@@ -106,45 +112,54 @@
 
             startScreenBtn.addEventListener('click', async () => {
                 try {
-                    // Bilgisayarı yormamak için sadece SEKME veya PENCERE seçilmesi önerilir
+                    // Ekran veya sekme paylaşımını başlat
                     localStream = await navigator.mediaDevices.getDisplayMedia({
                         video: { 
                             cursor: "always",
-                            frameRate: { ideal: 30, max: 30 } // İşlemciyi yormamak için FPS sınırı
+                            frameRate: { ideal: 30, max: 30 } 
                         },
-                        audio: true // Ses aktarımı (Destekleyen tarayıcılarda sekme sesi gider)
+                        audio: true 
                     });
 
                     videoElement.srcObject = localStream;
-                    statusDiv.innerText = "YAYINDA: İzleyiciler bağlanıyor...";
+                    statusDiv.innerText = "YAYINDA: İzleyiciler bekleniyor...";
 
-                    // Paylaşım bittiğinde veya kullanıcı tarayıcıdan "Paylaşımı Durdur" dediğinde
+                    // Kullanıcı tarayıcıdan "Paylaşımı Durdur" derse
                     localStream.getVideoTracks()[0].onended = () => {
                         statusDiv.innerText = "Yayın Durduruldu.";
                         videoElement.srcObject = null;
+                        localStream = null;
                     };
                 } catch (err) {
-                    statusDiv.innerText = "İptal edildi veya hata oluştu.";
+                    statusDiv.innerText = "Paylaşım iptal edildi veya reddedildi.";
                 }
             });
 
         } else {
-            // --- İZLEYİCİ TARAFI ---
-            const peer = new Peer();
+            // ==========================================
+            // İZLEYİCİ TARAFI
+            // ==========================================
+            let peer = new Peer();
 
             peer.on('open', () => {
-                statusDivText = "Yayına bağlanılıyor...";
-                // Admin'e bağlan
+                console.log("İzleyici ID oluşturuldu, yayına bağlanılıyor...");
+                
+                // Boş bir MediaStream ile yayını arıyoruz
                 const call = peer.call(ADMIN_PEER_ID, new MediaStream());
 
                 call.on('stream', (remoteStream) => {
+                    console.log("Yayın akışı alındı!");
                     videoElement.srcObject = remoteStream;
-                    videoElement.play().catch(() => {});
+                    videoElement.play().catch(e => console.log("Oynatma tetiklendi:", e));
+                });
+
+                call.on('close', () => {
+                    alert("Yayın sona erdi.");
                 });
             });
 
             peer.on('error', (err) => {
-                console.log("Yayın henüz aktif değil.");
+                console.log("Peer hatası (Yayın henüz açık olmayabilir):", err);
             });
         }
     </script>
