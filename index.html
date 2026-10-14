@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaçTV Oynatıcı</title>
-    <!-- Hls.js Kütüphanesi -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Canlı Yayın Sistemi</title>
+    <!-- WebRTC Yönetimi için PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,50 +15,138 @@
         html, body {
             width: 100%;
             height: 100%;
-            background-color: #000;
+            background-color: #0f0f0f;
+            color: #fff;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         video {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Videoyu oranını bozmadan ekrana sığdırır */
+            object-fit: contain;
             background: #000;
+        }
+        /* Admin Paneli */
+        #adminControls {
+            display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(20, 20, 20, 0.9);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        button {
+            background: #e50914;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #b80710;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #aaa;
         }
     </style>
 </head>
 <body>
 
-    <video id="videoPlayer" controls autoplay playsinline></video>
+    <!-- Admin Paneli (Sadece ?admin=1 ile açıldığında görünür) -->
+    <div id="adminControls">
+        <button id="startScreenBtn">Canlı Yayın Başlat (Sekme Seç)</button>
+        <div id="status">Admin Modu: Bekleniyor...</div>
+    </div>
+
+    <!-- Yayın Görüntüleme Alanı -->
+    <video id="remoteVideo" autoplay playsinline controls></video>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var video = document.getElementById('videoPlayer');
-            var videoSrc = "https://7jep2q6xee5pjrv.fu8oefd4v2dvlmaarur6crfp.com/sunshine/POAVVY3cDxxW2qMtBSntB6S4zhJf5YynslzbsIk-byksoDC7jgD1c-0VO3f5DbRfUBsBNDbU067Ly_f1k1G9LYg4er6T6tq1HqyjgWFySKnWXYyEd9ZKnwKKpT0SClmJtz7JuqIzgyLZ67BoLv5kmGzRb6_s1Vp7txxMPRTAx_w3DfvdTOjQ1jUvCHNgXfWA_q8GQhq_EfVn6opqSlcMJMh4xYpD30wARG5vsQdAw1jNj4Leh4l_0298fyWvYSa6/hls/index.m3u8";
+        // Sabit Oda Adı (Kendi odanı belirleyebilirsin)
+        const ADMIN_PEER_ID = "xstream-özel-yayin-odasi-2026";
 
-            if (Hls.isSupported()) {
-                var hls = new Hls({
-                    // Akış kopmalarını önlemek için tampon ve kurtarma ayarları
-                    maxBufferLength: 30,
-                    liveSyncDurationCount: 3
-                });
-                hls.loadSource(videoSrc);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play().catch(error => {
-                        console.log("Otomatik oynatma tarayıcı tarafından engellendi:", error);
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = urlParams.get('admin') === '1';
+
+        const videoElement = document.getElementById('remoteVideo');
+        const adminControls = document.getElementById('adminControls');
+        const startScreenBtn = document.getElementById('startScreenBtn');
+        const statusDiv = document.getElementById('status');
+
+        if (isAdmin) {
+            // --- YAYINCI (ADMIN) TARAFI ---
+            adminControls.style.display = 'block';
+            
+            const peer = new Peer(ADMIN_PEER_ID);
+
+            peer.on('open', (id) => {
+                statusDiv.innerText = "Bağlantı hazır. Butona basıp yayın akışını seçin.";
+            });
+
+            let localStream = null;
+
+            // İzleyici bağlandığında yayını aktar
+            peer.on('call', (call) => {
+                if (localStream) {
+                    call.answer(localStream);
+                } else {
+                    call.answer();
+                }
+            });
+
+            startScreenBtn.addEventListener('click', async () => {
+                try {
+                    // Bilgisayarı yormamak için sadece SEKME veya PENCERE seçilmesi önerilir
+                    localStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { 
+                            cursor: "always",
+                            frameRate: { ideal: 30, max: 30 } // İşlemciyi yormamak için FPS sınırı
+                        },
+                        audio: true // Ses aktarımı (Destekleyen tarayıcılarda sekme sesi gider)
                     });
+
+                    videoElement.srcObject = localStream;
+                    statusDiv.innerText = "YAYINDA: İzleyiciler bağlanıyor...";
+
+                    // Paylaşım bittiğinde veya kullanıcı tarayıcıdan "Paylaşımı Durdur" dediğinde
+                    localStream.getVideoTracks()[0].onended = () => {
+                        statusDiv.innerText = "Yayın Durduruldu.";
+                        videoElement.srcObject = null;
+                    };
+                } catch (err) {
+                    statusDiv.innerText = "İptal edildi veya hata oluştu.";
+                }
+            });
+
+        } else {
+            // --- İZLEYİCİ TARAFI ---
+            const peer = new Peer();
+
+            peer.on('open', () => {
+                statusDivText = "Yayına bağlanılıyor...";
+                // Admin'e bağlan
+                const call = peer.call(ADMIN_PEER_ID, new MediaStream());
+
+                call.on('stream', (remoteStream) => {
+                    videoElement.srcObject = remoteStream;
+                    videoElement.play().catch(() => {});
                 });
-            } 
-            // Safari gibi yerel HLS desteği olan tarayıcılar için
-            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = videoSrc;
-                video.addEventListener('loadedmetadata', function() {
-                    video.play().catch(error => {
-                        console.log("Otomatik oynatma engellendi:", error);
-                    });
-                });
-            }
-        });
+            });
+
+            peer.on('error', (err) => {
+                console.log("Yayın henüz aktif değil.");
+            });
+        }
     </script>
 
 </body>
